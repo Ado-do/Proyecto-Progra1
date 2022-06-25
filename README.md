@@ -30,7 +30,7 @@
 Leer `Pauta Proyecto Tetris.pdf` por cualquier duda :)
 
 <!-- GETTING STARTED -->
-## Como empezar
+## Instrucciones
 
 Aqui dar instrucciones de como montar el repositorio localmente y como compilar el juego, ademas de como jugarlo
 
@@ -59,6 +59,22 @@ _Ejemplo de como es la instación, con instrucciones detalladas._
    ```js
    const API_KEY = 'ENTER YOUR API';
    ```
+### Controles
+
+En menús:
+* <kbd>↑</kbd>, <kbd>↓</kbd>, <kbd>←</kbd> y <kbd>→</kbd>: Moverse por el menú
+* <kbd>ENTER</kbd> y <kbd>ESPACIO</kbd>: Confirmar
+* <kbd>ESC</kbd>: Salir del juego
+
+En partida:
+* <kbd>←</kbd> y <kbd>→</kbd>: Mover el tetrominó
+* <kbd>ESPACIO</kbd> o <kbd>↓</kbd>: Drop  instantáneo/rapido del tetrominó
+* <kbd>X</kbd> o <kbd>Z</kbd>: Rotar 90° (sentido horario o antihorario) el tetrominó
+* <kbd>A</kbd>: Rotar 180° el tetrominó
+* <kbd>C</kbd>: Guardar pieza
+* <kbd>ESC</kbd>: Pausar
+* <kbd>R</kbd>: Reinciar
+
 <!-- ROADMAP -->
 ## Objetivos
 
