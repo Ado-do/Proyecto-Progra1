@@ -1,7 +1,6 @@
-# TetrisUdecProject
-* Proyecto Semestral Programación 1: Tetris en C (SDL2) *
+# Proyecto Semestral Programación 1: Tetris en C (SDL2)
+* Fechas
 
 Fechas:
 
-
-Team Adodo-Krozz-Franchesita
+* Team Adodo-Krozz-Franchesita
