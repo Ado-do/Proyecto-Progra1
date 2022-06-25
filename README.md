@@ -27,7 +27,7 @@
 * Entrega 2: 8 julio
 * Entrega final: 17-21 de julio
 
-Leer pauta `BLANK_README.md` por cualquier duda
+Leer `Pauta Proyecto Tetris.pdf` por cualquier duda :)
 
 <!-- GETTING STARTED -->
 ## Como empezar
