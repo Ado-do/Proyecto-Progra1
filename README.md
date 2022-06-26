@@ -157,6 +157,7 @@ Aqui pondremos links utiles para el proyecto, ya sea documentacion de SDL2 o ide
 * [Wiki SDL2 por categorias](https://wiki.libsdl.org/APIByCategory)
 * [Seminario de un tipo de Harvard que explica de pana el SDL (esta en español](https://youtu.be/yFLa3ln16w0)
 * [Tutorial para hacer un menú bomnito con SDL](https://www.parallelrealities.co.uk/tutorials/widgets/widgets1.php)
+* [Insertar texto con SDL_ttf (puede ser util para el menu y score)](https://www.parallelrealities.co.uk/tutorials/ttf/ttf1.php)
 * [Gameplay general Tetris](https://tetris.wiki/Gameplay_of_Tetris)[Categorias del Gameplay](https://tetris.wiki/Category:Gameplay)
 * [Generacion de piezas](https://tetris.wiki/Category:Gameplay)[Implementación](https://www.educative.io/courses/game-development-js-tetris/xlKZA7B9lLr)
 * [Sistema de puntuación en Tetris (Scoring)](https://tetris.wiki/Scoring)
