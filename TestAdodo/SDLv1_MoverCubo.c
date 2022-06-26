@@ -13,7 +13,10 @@ int main(int argc, char *argv[])
 	if (SDL_Init(SDL_INIT_EVERYTHING) != 0) {
 		printf("error initializing SDL: %s\n", SDL_GetError());
 	}
-	SDL_Window* win = SDL_CreateWindow("Intento de tetris", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 600, 1000, 0);
+	SDL_Window* win = SDL_CreateWindow("Intento de tetris", 
+										SDL_WINDOWPOS_CENTERED, 
+										SDL_WINDOWPOS_CENTERED, 
+										600, 1000, 0);
 
 	// triggers the program that controls
 	// your graphics hardware and sets flags

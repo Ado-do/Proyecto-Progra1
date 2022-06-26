@@ -14,12 +14,17 @@ int main(int argc, char *argv[]) {
     SDL_Surface* screenSurface = NULL;
 
     // Iniciualizar SDL
-    if (SDL_Init(SDL_INIT_VIDEO) < 0) {
+    if (SDL_Init(SDL_INIT_VIDEO) != 0) {
         printf("No se pudo iniciar SDL! SDL_Error: %s\n", SDL_GetError());
+		return 1;
     } else {
         // Crear ventana
-        window = SDL_CreateWindow("Intento SDL", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_SHOWN);
-        if (window == NULL) {
+        window = SDL_CreateWindow("Intento SDL", 
+								SDL_WINDOWPOS_UNDEFINED, 
+								SDL_WINDOWPOS_UNDEFINED, 
+								SCREEN_WIDTH, SCREEN_HEIGHT, 
+								SDL_WINDOW_SHOWN);
+        if (!window) {
             printf("No se pudo crear la ventana! SDL_Error: %s\n", SDL_GetError());
         } else {
             // Generar la superficie de la ventana
