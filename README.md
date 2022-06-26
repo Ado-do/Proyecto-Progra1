@@ -88,4 +88,7 @@ En partida:
 
 Aqui pondremos links utiles para el proyecto, ya sea documentacion de SDL2 o ideas para programar Tetris
 
-* [Choose an Open Source License](https://choosealicense.com)
+* [Documentación SDL2 (Wiki)](https://wiki.libsdl.org/)
+* [Wiki SDL2 por categorias](https://wiki.libsdl.org/APIByCategory)
+* [Seminario de un tipo de Harvard que explica de pana el SDL (esta en español](https://youtu.be/yFLa3ln16w0)
+* [Tutorial para hacer un menú bomnito con SDL](https://www.parallelrealities.co.uk/tutorials/widgets/widgets1.php)
