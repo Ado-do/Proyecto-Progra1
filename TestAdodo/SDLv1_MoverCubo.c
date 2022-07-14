@@ -29,7 +29,7 @@ int main(int argc, char *argv[])
 	 
 	// Son "SDL_RendererFlags", estas se utilizan para crear renders con una determinada configuracion.
 	// SDL_RENDERER_ACCELERATED es para crear un render que use aceleracion de hardware (usa GPU)
-	Uint32 render_flags = SDL_RENDERER_ACCELERATED;
+	Uint32 render_flags = SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC;
 
 	// Crea un render para dibujar nuestras imagenes
 	SDL_Renderer* rend = SDL_CreateRenderer(win, -1, render_flags);
