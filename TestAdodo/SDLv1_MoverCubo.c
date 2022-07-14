@@ -21,6 +21,11 @@ int main(int argc, char *argv[])
 										SDL_WINDOWPOS_CENTERED, 
 										SDL_WINDOWPOS_CENTERED, 
 										SCREEN_WIDTH, SCREEN_HEIGHT, 0);
+
+	// Poner icono a la ventana
+	SDL_Surface* icon = IMG_Load("udec_icon.webp");
+	SDL_SetWindowIcon(win, icon);
+	SDL_FreeSurface(icon);
 	 
 	// Son "SDL_RendererFlags", estas se utilizan para crear renders con una determinada configuracion.
 	// SDL_RENDERER_ACCELERATED es para crear un render que use aceleracion de hardware (usa GPU)
@@ -121,7 +126,7 @@ int main(int argc, char *argv[])
 		// printf("dest.y por caida: %d\n", dest.y);
 
 		// Perimetro derecho
-		if (dest.x + dest.w > SCREEN_WIDTH) {
+		if (dest.x > SCREEN_WIDTH - dest.w) {
 			dest.x = SCREEN_WIDTH - dest.w;
 			printf("BLOCKEAO. dest.x: %d\n", dest.x);
 		}
@@ -131,7 +136,7 @@ int main(int argc, char *argv[])
 			printf("BLOCKEAO. dest.x: %d\n", dest.x);
 		}
 		// Perimetro inferior
-		if (dest.y + dest.h > SCREEN_HEIGHT) {
+		if (dest.y > SCREEN_HEIGHT - dest.h) {
 			dest.y = SCREEN_HEIGHT - dest.h;
 			printf("BLOCKEAO. dest.y: %d\n", dest.y);
 		}
