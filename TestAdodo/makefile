@@ -9,7 +9,7 @@ CFLAGS := `sdl2-config --libs --cflags` -ggdb3 -O0 --std=c99 -Wall -lSDL2_image 
 HDRS :=
 
 # add source files here
-SRCS := SDLv1_MoverCubo.c
+SRCS := SDLv2_CrearPiezas.c
 
 # generate names of object files
 OBJS := $(SRCS:.c=.o)
