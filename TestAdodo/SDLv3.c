@@ -9,13 +9,13 @@ const int SCREEN_HEIGHT = 480;
 
 int main(int argc, char *argv[]) {
 
-    // Iniciualizar SDL
+    // Inicializar SDL
     if (SDL_Init(SDL_INIT_VIDEO|SDL_INIT_TIMER) != 0) {
         printf("No se pudo iniciar SDL! SDL_Error: %s\n", SDL_GetError());
 		return 1;
     }
     // Crear ventana
-    // SDL_Windows es una estrucura que guarda toda la inforamcion de la propia ventana (tamaño, posicion, fullscreen, borders, etc)
+    // SDL_Windows es una estrucura que guarda toda la informacion de la propia ventana (tamaño, posicion, fullscreen, borders, etc)
     SDL_Window* window = SDL_CreateWindow("Intento SDL", 
                                             SDL_WINDOWPOS_CENTERED, 
                                             SDL_WINDOWPOS_CENTERED, 

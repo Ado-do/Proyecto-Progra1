@@ -1,80 +1,79 @@
-
-// for initializing and shutdown functions
+// Para funciones de inicializacion y apagado
 #include <SDL2/SDL.h>
-// for rendering images and graphics on screen
+// Para renderizar imagenes y graficos en pantalla
 #include <SDL2/SDL_image.h>
-// for using SDL_Delay() functions
+// Para usar funciones basadas en tiempo como SDL_Delay()
 #include <SDL2/SDL_timer.h>
 
 int main(int argc, char *argv[])
 {
-
-	// returns zero on success else non-zero
+	// Retorna 0 o 1 dependiendo si se inicializo todo con exito
 	if (SDL_Init(SDL_INIT_EVERYTHING) != 0) {
 		printf("error initializing SDL: %s\n", SDL_GetError());
 	}
+	// Crear ventana
 	SDL_Window* win = SDL_CreateWindow("Intento de tetris", 
 										SDL_WINDOWPOS_CENTERED, 
 										SDL_WINDOWPOS_CENTERED, 
 										600, 1000, 0);
-
-	// triggers the program that controls
-	// your graphics hardware and sets flags
+	 
+	// Son "SDL_RendererFlags", estas se utilizan para crear renders con una determinada configuracion.
+	// SDL_RENDERER_ACCELERATED es para crear un render que use aceleracion de hardware (usa GPU)
 	Uint32 render_flags = SDL_RENDERER_ACCELERATED;
 
-	// creates a renderer to render our images
+	// Crea un render para dibujar nuestras imagenes
 	SDL_Renderer* rend = SDL_CreateRenderer(win, -1, render_flags);
 
-	// creates a surface to load an image into the main memory
+	// Crea una superficie para cargar una imagen en la memoria principal
 	SDL_Surface* surface;
 
-	// please provide a path for your image
+	// IMG_Load es una funcion que pide un path de tu imagen para convertirla en superficie
 	surface = IMG_Load("O_block0.webp");
 
-	// loads image to our graphics hardware memory.
+	// Carga imagen en la memomoria del hardware grafico
+	// Convierte la superficie a textura (CPU -> GPU)
 	SDL_Texture* tex = SDL_CreateTextureFromSurface(rend, surface);
 
-	// clears main-memory
+	// Libera la memoria ocupada por la superficie ya convertida
 	SDL_FreeSurface(surface);
 
-	// let us control our image position
-	// so that we can move it with our keyboard.
+	// Nos deja controlar la posicion de nuestra imagen para poder moverla con nuestro teclado
 	SDL_Rect dest;
 
-	// connects our texture with dest to control position
+	// Conectar nuestra textura con "dest" para controlar la posicion
 	SDL_QueryTexture(tex, NULL, NULL, &dest.w, &dest.h);
 
-	// adjust height and width of our image box.
+	// Ajustar alto y ancho de nuestra imagen
 	dest.w /= 3;
 	dest.h /= 3;
 
-	// sets initial x-position of object
+	// Asignar posicion x inicial del objeto
 	dest.x = (1000 - dest.w) / 2;
 
-	// sets initial y-position of object
+	// Asignar posicion x inicial del objeto
 	dest.y = (1000 - dest.h) / 2;
 
-	// controls animation loop
+	// Controlar ciclo de la animacion
 	int close = 0;
 
-	// speed of box
+	// Velicidad de la caja
 	int speed = 600;
 
-	// animation loop
+	// Bucle de animacion
 	while (!close) {
 		SDL_Event event;
 
-		// Events management
+		// Administracion de eventos
 		while (SDL_PollEvent(&event)) {
 			switch (event.type) {
 
 			case SDL_QUIT:
-				// handling of close button
+				// Manejo del boton de cerrar
 				close = 1;
 				break;
 
 			case SDL_KEYDOWN:
-				// keyboard API for key pressed
+				// API de teclado para teclas presionadas
 				switch (event.key.keysym.scancode) {
 				case SDL_SCANCODE_W:
 				case SDL_SCANCODE_UP:
@@ -102,44 +101,43 @@ int main(int argc, char *argv[])
             if (close) break;
 		}
 
-		// right boundary
+		// Perimetro derecho
 		if (dest.x + dest.w > 1000)
 			dest.x = 1000 - dest.w;
 
-		// left boundary
+		// Perimetro izquierdo
 		if (dest.x < 0)
 			dest.x = 0;
 
-		// bottom boundary
+		// Perimetro inferior
 		if (dest.y + dest.h > 1000)
 			dest.y = 1000 - dest.h;
 
-		// upper boundary
+		// Perimetro superior
 		if (dest.y < 0)
 			dest.y = 0;
 
-		// clears the screen
+		// Limpiar pantalla
 		SDL_RenderClear(rend);
 		SDL_RenderCopy(rend, tex, NULL, &dest);
 
-		// triggers the double buffers
-		// for multiple rendering
+		// Provoca de el "double buffers", para renderizado multiple
 		SDL_RenderPresent(rend);
 
-		// calculates to 60 fps
+		// Calcular para los 60 fps
 		SDL_Delay(1000 / 60);
 	}
 
-	// destroy texture
+	// Destrozar textura
 	SDL_DestroyTexture(tex);
 
-	// destroy renderer
+	// Destrozar renderizador
 	SDL_DestroyRenderer(rend);
 
-	// destroy window
+	// Destrozar ventana
 	SDL_DestroyWindow(win);
-	
-	// close SDL
+
+	// Cerrar SDL	
 	SDL_Quit();
 
 	return 0;
