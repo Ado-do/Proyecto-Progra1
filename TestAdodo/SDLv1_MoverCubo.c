@@ -13,9 +13,8 @@ const int SCREEN_HEIGHT = 690;
 int main(int argc, char *argv[])
 {
 	// Retorna 0 o 1 dependiendo si se inicializo todo con exito
-	if (SDL_Init(SDL_INIT_EVERYTHING) != 0) {
-		printf("error initializing SDL: %s\n", SDL_GetError());
-	}
+	if (SDL_Init(SDL_INIT_EVERYTHING) != 0) printf("Error inicializando SDL: %s\n", SDL_GetError());
+	
 	// Crear ventana
 	SDL_Window* win = SDL_CreateWindow("Intento de tetris", 
 										SDL_WINDOWPOS_CENTERED, 
