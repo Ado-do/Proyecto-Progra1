@@ -6,6 +6,10 @@
 // Para usar funciones basadas en tiempo como SDL_Delay()
 #include <SDL2/SDL_timer.h>
 
+// Constantes de las Dimensiones
+const int SCREEN_WIDTH = 600;
+const int SCREEN_HEIGHT = 690;
+
 int main(int argc, char *argv[])
 {
 	// Retorna 0 o 1 dependiendo si se inicializo todo con exito
@@ -16,7 +20,7 @@ int main(int argc, char *argv[])
 	SDL_Window* win = SDL_CreateWindow("Intento de tetris", 
 										SDL_WINDOWPOS_CENTERED, 
 										SDL_WINDOWPOS_CENTERED, 
-										600, 1000, 0);
+										SCREEN_WIDTH, SCREEN_HEIGHT, 0);
 	 
 	// Son "SDL_RendererFlags", estas se utilizan para crear renders con una determinada configuracion.
 	// SDL_RENDERER_ACCELERATED es para crear un render que use aceleracion de hardware (usa GPU)
@@ -47,20 +51,22 @@ int main(int argc, char *argv[])
 	// Ajustar alto y ancho de nuestra imagen
 	dest.w /= 3;
 	dest.h /= 3;
-	printf("dest.w %d\n", dest.w);
-	printf("dest.h %d\n", dest.h);
+	printf("dest.w inicial: %d\n", dest.w);
+	printf("dest.h inicial: %d\n", dest.h);
 
 	// Asignar posicion x inicial del objeto
-	dest.x = (1000 - dest.w) / 2;
+	dest.x = (SCREEN_WIDTH - dest.w) / 2;
+	printf("dest.x inicial: %d\n", dest.x);
 
-	// Asignar posicion x inicial del objeto
-	dest.y = (1000 - dest.h) / 2;
+	// Asignar posicion y inicial del objeto
+	dest.y = (SCREEN_HEIGHT - dest.h) / 2;
+	printf("dest.y inicial: %d\n", dest.y);
 
 	// Controlar ciclo de la animacion
 	int close = 0;
 
-	// Velicidad de la caja
-	int speed = 600;
+	// Velocidad de la caja
+	// int speed = 600;
 
 	// Bucle de animacion
 	while (!close) {
@@ -80,19 +86,27 @@ int main(int argc, char *argv[])
 				switch (event.key.keysym.scancode) {
 				case SDL_SCANCODE_W:
 				case SDL_SCANCODE_UP:
-					dest.y -= speed / 30;
+					// dest.y -= speed / 30;
+					dest.y -= 68;
+					printf("dest.y: %d\n", dest.y);
 					break;
 				case SDL_SCANCODE_A:
 				case SDL_SCANCODE_LEFT:
-					dest.x -= speed / 30;
+					// dest.x -= speed / 30;
+					dest.x -= 68;
+					printf("dest.x: %d\n", dest.x);
 					break;
 				case SDL_SCANCODE_S:
 				case SDL_SCANCODE_DOWN:
-					dest.y += speed / 30;
+					// dest.y += speed / 30;
+					dest.y += 68;
+					printf("dest.y: %d\n", dest.y);
 					break;
 				case SDL_SCANCODE_D:
 				case SDL_SCANCODE_RIGHT:
-					dest.x += speed / 30;
+					// dest.x += speed / 30;
+					dest.x += 68;
+					printf("dest.x: %d\n", dest.x);
 					break;
                 case SDL_SCANCODE_ESCAPE:
                     close = 1;
@@ -105,16 +119,16 @@ int main(int argc, char *argv[])
 		}
 
 		// Perimetro derecho
-		if (dest.x + dest.w > 1000)
-			dest.x = 1000 - dest.w;
+		if (dest.x + dest.w > SCREEN_WIDTH)
+			dest.x = SCREEN_WIDTH - dest.w;
 
 		// Perimetro izquierdo
 		if (dest.x < 0)
 			dest.x = 0;
 
 		// Perimetro inferior
-		if (dest.y + dest.h > 1000)
-			dest.y = 1000 - dest.h;
+		if (dest.y + dest.h > SCREEN_HEIGHT)
+			dest.y = SCREEN_HEIGHT - dest.h;
 
 		// Perimetro superior
 		if (dest.y < 0)
