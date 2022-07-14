@@ -14,7 +14,7 @@ int main(int argc, char *argv[]) {
     SDL_Surface* screenSurface = NULL;
 
     // Iniciualizar SDL
-    if (SDL_Init(SDL_INIT_VIDEO) != 0) {
+    if (SDL_Init(SDL_INIT_EVERYTHING) != 0) {
         printf("No se pudo iniciar SDL! SDL_Error: %s\n", SDL_GetError());
 		return 1;
     } else {
