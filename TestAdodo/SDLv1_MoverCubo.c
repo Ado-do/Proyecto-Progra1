@@ -68,72 +68,78 @@ int main(int argc, char *argv[])
 	// Velocidad de la caja
 	// int speed = 600;
 
-	// Bucle de animacion
+	// Bucle del juego, donde se refresca la pantalla hasta cerrar el juego
 	while (!close) {
 		SDL_Event event;
-
 		// Administracion de eventos
 		while (SDL_PollEvent(&event)) {
 			switch (event.type) {
-
-			case SDL_QUIT:
-				// Manejo del boton de cerrar
-				close = 1;
-				break;
-
-			case SDL_KEYDOWN:
-				// API de teclado para teclas presionadas
-				switch (event.key.keysym.scancode) {
-				case SDL_SCANCODE_W:
-				case SDL_SCANCODE_UP:
-					// dest.y -= speed / 30;
-					dest.y -= 68;
-					printf("dest.y: %d\n", dest.y);
+				case SDL_QUIT:
+					// Manejo del boton de cerrar
+					close = 1;
 					break;
-				case SDL_SCANCODE_A:
-				case SDL_SCANCODE_LEFT:
-					// dest.x -= speed / 30;
-					dest.x -= 68;
-					printf("dest.x: %d\n", dest.x);
-					break;
-				case SDL_SCANCODE_S:
-				case SDL_SCANCODE_DOWN:
-					// dest.y += speed / 30;
-					dest.y += 68;
-					printf("dest.y: %d\n", dest.y);
-					break;
-				case SDL_SCANCODE_D:
-				case SDL_SCANCODE_RIGHT:
-					// dest.x += speed / 30;
-					dest.x += 68;
-					printf("dest.x: %d\n", dest.x);
-					break;
-                case SDL_SCANCODE_ESCAPE:
-                    close = 1;
-				    break;
-				default:
-					break;
-				}
+				case SDL_KEYDOWN:
+					// API de teclado para teclas presionadas
+					switch (event.key.keysym.scancode) {
+						case SDL_SCANCODE_W:
+						case SDL_SCANCODE_UP:
+							// dest.y -= speed / 30;
+							dest.y -= 68;
+							printf("dest.y: %d\n", dest.y);
+							break;
+						case SDL_SCANCODE_A:
+						case SDL_SCANCODE_LEFT:
+							// dest.x -= speed / 30;
+							dest.x -= 68;
+							printf("dest.x: %d\n", dest.x);
+							break;
+						case SDL_SCANCODE_S:
+						case SDL_SCANCODE_DOWN:
+							// dest.y += speed / 30;
+							dest.y += 68;
+							printf("dest.y: %d\n", dest.y);
+							break;
+						case SDL_SCANCODE_D:
+						case SDL_SCANCODE_RIGHT:
+							// dest.x += speed / 30;
+							dest.x += 68;
+							printf("dest.x: %d\n", dest.x);
+							break;
+						case SDL_SCANCODE_ESCAPE:
+							close = 1;
+							break;
+						default:
+							break;
+					}
 			}
+			// printf("Poll Event: %d\n", SDL_PollEvent(&event));
             if (close) break;
 		}
 
+		// SDL_Delay(1000);
+		// dest.y += 68;
+		// printf("dest.y por caida: %d\n", dest.y);
+
 		// Perimetro derecho
-		if (dest.x + dest.w > SCREEN_WIDTH)
+		if (dest.x + dest.w > SCREEN_WIDTH) {
 			dest.x = SCREEN_WIDTH - dest.w;
-
+			printf("BLOCKEAO. dest.x: %d\n", dest.x);
+		}
 		// Perimetro izquierdo
-		if (dest.x < 0)
+		if (dest.x < 0) {
 			dest.x = 0;
-
+			printf("BLOCKEAO. dest.x: %d\n", dest.x);
+		}
 		// Perimetro inferior
-		if (dest.y + dest.h > SCREEN_HEIGHT)
+		if (dest.y + dest.h > SCREEN_HEIGHT) {
 			dest.y = SCREEN_HEIGHT - dest.h;
-
+			printf("BLOCKEAO. dest.y: %d\n", dest.y);
+		}
 		// Perimetro superior
-		if (dest.y < 0)
+		if (dest.y < 0) {
 			dest.y = 0;
-
+			printf("BLOCKEAO. dest.y: %d\n", dest.y);
+		}
 		// Limpiar pantalla
 		SDL_RenderClear(rend);
 		SDL_RenderCopy(rend, tex, NULL, &dest);
