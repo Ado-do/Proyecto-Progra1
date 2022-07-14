@@ -1,3 +1,4 @@
+#include <stdio.h>
 // Para funciones de inicializacion y apagado
 #include <SDL2/SDL.h>
 // Para renderizar imagenes y graficos en pantalla
@@ -46,6 +47,8 @@ int main(int argc, char *argv[])
 	// Ajustar alto y ancho de nuestra imagen
 	dest.w /= 3;
 	dest.h /= 3;
+	printf("dest.w %d\n", dest.w);
+	printf("dest.h %d\n", dest.h);
 
 	// Asignar posicion x inicial del objeto
 	dest.x = (1000 - dest.w) / 2;
