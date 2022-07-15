@@ -96,9 +96,22 @@ shape transpose(shape* s) {
 	}
 	return tmp;
 }
-void rotation(shape* s) {
-	*s = reverseCols(transpose(s));
+void rotation1(shape* s, int clockwise) {
+	// *s = transpose(s);
+	switch (clockwise) {
+		case 1:
+			*s = reverseCols(transpose(s));
+			return;
+		case 2:
+			*s = transpose(s);
+			return;
+		case 3:
+			return;
+	}
 }
+// void rotation2(shape* s, int clockwise) {
+// 	shape tmp = *s;
+// }
 void drop(shape* s) {
 	// *s = blocks[rand() % 7];
 	// Numero de pieza aleatoria
@@ -129,6 +142,14 @@ void draw(shape* s, SDL_Rect* rect, SDL_Renderer* renderer) {
 			}
 		}
 	}
+	// printf("La matriz de s en DRAW es:\n");
+	// for (int i = 0; i < 4; ++i) {
+	// 	printf("| ");
+	// 	for (int j = 0; j < 4; ++j) {
+	// 		printf("%d ", s->matrix[i][j]);
+	// 	}
+	// 	printf("|\n");
+	// }
 }
 
 // void update(shape* cur) {
@@ -136,7 +157,7 @@ void draw(shape* s, SDL_Rect* rect, SDL_Renderer* renderer) {
 // 	if (right) cur->x++;
 // 	if (down) cur->y++;
 // 	if (up) cur->y--;
-// 	if (rotate) rotation();
+// 	if (rotate) rotation1();
 // 	// if (drop);
 // }
 
@@ -149,29 +170,36 @@ void input(shape* cur) {
 			// case SDL_KEYUP: //DOWN
 			case SDL_KEYDOWN:
 				switch(e.key.keysym.sym) {
-					case SDLK_a:
+					// case SDLK_a:
 					case SDLK_LEFT:
 						// left = 1;
 						cur->x--;
 						break;
-					case SDLK_d:
+					// case SDLK_d:
 					case SDLK_RIGHT:
 						// right = 1;
 						cur->x++;
 						break;
-					case SDLK_w:
+					// case SDLK_w:
 					case SDLK_UP:
 						// up = 1;
 						cur->y--;
 						break;
-					case SDLK_s:
+					// case SDLK_s:
 					case SDLK_DOWN:
 						// down = 1;
 						cur->y++;
 						break;
 					case SDLK_z:
 						// rotate = 1;
-						rotation(cur);
+						rotation1(cur, 1);
+						break;
+					case SDLK_x:
+						rotation1(cur, 2);
+						break;
+					case SDLK_a:
+						rotation1(cur, 1);
+						rotation1(cur, 1);
 						break;
 					case SDLK_SPACE:
 						drop(cur);
@@ -221,7 +249,6 @@ int main() {
 	SDL_Surface* icon = IMG_Load("udec_icon.webp");
 	SDL_SetWindowIcon(window, icon);
 	SDL_FreeSurface(icon);
-
 
 	while(running) {
 		lastFrame = SDL_GetTicks();
