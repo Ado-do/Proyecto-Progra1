@@ -74,10 +74,11 @@ shape blocks[7] = { // L BLOCK
 					,{0,0,0,0}
 					},7.5,7.5,3}};
 
+//
 shape reverseCols(shape s) {
 	shape tmp = s;
 	for(int i = 0; i < s.size; i++) {
-		for(int j = 0; j < s.size/2; j++) {
+		for(int j = 0; j < s.size/2; j++) { // Cambiamos la mitaz de las columnas por iteracion
 			bool t = s.matrix[i][j];
 			tmp.matrix[i][j] = s.matrix[i][s.size - j - 1];
 			tmp.matrix[i][s.size - j - 1] = t;
@@ -267,4 +268,6 @@ int main(int argc, char *argv[]) {
 	SDL_DestroyRenderer(renderer);
 	SDL_DestroyWindow(window);
 	SDL_Quit();
+
+	return 0;
 }
