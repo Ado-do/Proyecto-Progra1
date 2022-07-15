@@ -7,8 +7,10 @@
 #include <SDL2/SDL_timer.h>
 
 // Constantes de las Dimensiones
-#define SCREEN_WIDTH = 600
-#define SCREEN_HEIGHT = 690
+#define SCREEN_WIDTH 600
+#define SCREEN_HEIGHT 690
+#define BLOCK_LEN 53
+#define BLOCK_MV 52
 // const int SCREEN_WIDTH = 600;
 // const int SCREEN_HEIGHT = 690;
 
@@ -29,7 +31,7 @@ int main(int argc, char *argv[])
 	Uint32 render_flags = SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC;
 	SDL_Renderer* rend = SDL_CreateRenderer(win, -1, render_flags);
 
-	SDL_Surface* bloque = IMG_Load("O_block0.webp");
+	SDL_Surface* bloque = IMG_Load("assets/block.webp");
 
 	SDL_Texture* tex = SDL_CreateTextureFromSurface(rend, bloque);
     SDL_Texture* fondo = IMG_LoadTexture(rend, "assets/Fondo.png");
@@ -43,18 +45,20 @@ int main(int argc, char *argv[])
 	SDL_Rect dest;
 	SDL_QueryTexture(tex, NULL, NULL, &dest.w, &dest.h);
 
-	// Ajustar alto y ancho de nuestra imagen
-	dest.w /= 3;
-	dest.h /= 3;
+	// Tamaño de cada 4 casillas
+	dest.w = BLOCK_LEN + 2;
+	dest.h = BLOCK_LEN;
 	printf("dest.w inicial: %d\n", dest.w);
 	printf("dest.h inicial: %d\n", dest.h);
 
 	// Asignar posicion x inicial del objeto
-	dest.x = (SCREEN_WIDTH - dest.w) / 2;
+	// dest.x = (SCREEN_WIDTH - dest.w) / 2;
+	dest.x = 271;
 	printf("dest.x inicial: %d\n", dest.x);
 
 	// Asignar posicion y inicial del objeto
-	dest.y = (SCREEN_HEIGHT - dest.h) / 2;
+	// dest.y = (SCREEN_HEIGHT - dest.h) / 2;
+	dest.y = 344;
 	printf("dest.y inicial: %d\n", dest.y);
 
 	// Controlar ciclo de la animacion
@@ -77,28 +81,33 @@ int main(int argc, char *argv[])
 					// API de teclado para teclas presionadas
 					switch (event.key.keysym.scancode) {
 						case SDL_SCANCODE_W:
-						case SDL_SCANCODE_UP:
-							// dest.y -= speed / 30;
-							dest.y -= 68;
+							dest.y -= 1;
 							printf("dest.y: %d\n", dest.y);
 							break;
+						case SDL_SCANCODE_UP:
+							dest.y -= BLOCK_MV;
+							break;
 						case SDL_SCANCODE_A:
-						case SDL_SCANCODE_LEFT:
-							// dest.x -= speed / 30;
-							dest.x -= 68;
+							dest.x -= 1;
 							printf("dest.x: %d\n", dest.x);
 							break;
+						case SDL_SCANCODE_LEFT:
+							dest.x -= BLOCK_MV;
+							break;
 						case SDL_SCANCODE_S:
+							dest.y += 1;
+							printf("dest.y: %d\n", dest.y);
+							break;
 						case SDL_SCANCODE_DOWN:
-							// dest.y += speed / 30;
-							dest.y += 68;
+							dest.y += BLOCK_MV;
 							printf("dest.y: %d\n", dest.y);
 							break;
 						case SDL_SCANCODE_D:
-						case SDL_SCANCODE_RIGHT:
-							// dest.x += speed / 30;
-							dest.x += 68;
+							dest.x += 1;
 							printf("dest.x: %d\n", dest.x);
+							break;
+						case SDL_SCANCODE_RIGHT:
+							dest.x += BLOCK_MV;
 							break;
 						case SDL_SCANCODE_ESCAPE:
 							close = 1;
@@ -116,27 +125,28 @@ int main(int argc, char *argv[])
 		// printf("dest.y por caida: %d\n", dest.y);
 
 		// Perimetro derecho
-		if (dest.x > SCREEN_WIDTH - dest.w) {
-			dest.x = SCREEN_WIDTH - dest.w;
+		if (dest.x > 375) {
+			dest.x = 375;
 			printf("BLOCKEAO. dest.x: %d\n", dest.x);
 		}
 		// Perimetro izquierdo
-		if (dest.x < 0) {
-			dest.x = 0;
+		if (dest.x < 165) {
+			dest.x = 165;
 			printf("BLOCKEAO. dest.x: %d\n", dest.x);
 		}
 		// Perimetro inferior
-		if (dest.y > SCREEN_HEIGHT - dest.h) {
-			dest.y = SCREEN_HEIGHT - dest.h;
+		if (dest.y > 500) {
+			dest.y = 500;
 			printf("BLOCKEAO. dest.y: %d\n", dest.y);
 		}
 		// Perimetro superior
-		if (dest.y < 0) {
-			dest.y = 0;
+		if (dest.y < 137) {
+			dest.y = 137;
 			printf("BLOCKEAO. dest.y: %d\n", dest.y);
 		}
 		// Limpiar pantalla
 		SDL_RenderClear(rend);
+		SDL_RenderCopy(rend, fondo, NULL, NULL);
 		SDL_RenderCopy(rend, tex, NULL, &dest);
 
 		// Provoca de el "double buffers", para renderizado multiple

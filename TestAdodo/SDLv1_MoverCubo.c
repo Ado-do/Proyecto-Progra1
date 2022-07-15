@@ -37,7 +37,7 @@ int main(int argc, char *argv[])
 	SDL_Surface* surface;
 
 	// IMG_Load es una funcion que pide un path de tu imagen para convertirla en superficie
-	surface = IMG_Load("O_block0.webp");
+	surface = IMG_Load("assets/block.webp");
 
 	// Carga imagen en la memomoria del hardware grafico
 	// Convierte la superficie a textura (CPU -> GPU)
