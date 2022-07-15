@@ -222,7 +222,7 @@ void render(SDL_Renderer* renderer) {
 	}
 }
 
-int main() {
+int main(int argc, char *argv[]) {
 	srand(time(NULL));
 
 	shape cur = blocks[rand() % 7];
