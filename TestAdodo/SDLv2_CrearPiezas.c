@@ -79,8 +79,8 @@ shape reverseCols(shape s) {
 	for(int i = 0; i < s.size; i++) {
 		for(int j = 0; j < s.size/2; j++) {
 			bool t = s.matrix[i][j];
-			tmp.matrix[i][j] = s.matrix[i][s.size-j-1];
-			tmp.matrix[i][s.size-j-1] = t;
+			tmp.matrix[i][j] = s.matrix[i][s.size - j - 1];
+			tmp.matrix[i][s.size - j - 1] = t;
 		}
 	}
 	return tmp;
@@ -263,6 +263,7 @@ int main(int argc, char *argv[]) {
 		draw(&cur, &rect, renderer);
 		SDL_RenderPresent(renderer);
 	}
+
 	SDL_DestroyRenderer(renderer);
 	SDL_DestroyWindow(window);
 	SDL_Quit();
