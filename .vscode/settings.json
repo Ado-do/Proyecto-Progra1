@@ -1,4 +1,11 @@
 {
     "C_Cpp.default.configurationProvider": "ms-vscode.makefile-tools",
-    "C_Cpp.errorSquiggles": "Disabled"
+    "C_Cpp.errorSquiggles": "Disabled",
+    "files.associations": {
+        "Tarea 3": "python",
+        "Tarea 4": "python",
+        "Tarea 5": "python",
+        "sdl_timer.h": "c",
+        "sdl_image.h": "c"
+    }
 }
