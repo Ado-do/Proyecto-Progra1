@@ -74,8 +74,7 @@ shape blocks[7] = { // L BLOCK
 					,{0,0,0,0}
 					},7.5,7.5,3}};
 
-//
-shape reverseCols(shape s) {
+shape reverseCols1(shape s) {
 	shape tmp = s;
 	for(int i = 0; i < s.size; i++) {
 		for(int j = 0; j < s.size/2; j++) { // Cambiamos la mitaz de las columnas por iteracion
@@ -86,6 +85,7 @@ shape reverseCols(shape s) {
 	}
 	return tmp;
 }
+
 shape transpose(shape* s) {
 	shape tmp = *s;
 	for(int i = 0; i < s->size; i++) {
@@ -95,11 +95,12 @@ shape transpose(shape* s) {
 	}
 	return tmp;
 }
+
 void rotation1(shape* s, int clockwise) {
 	// *s = transpose(s);
 	switch (clockwise) {
 		case 1:
-			*s = reverseCols(transpose(s));
+			*s = reverseCols1(transpose(s));
 			return;
 		case 2:
 			*s = transpose(s);

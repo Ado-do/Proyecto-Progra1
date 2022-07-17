@@ -10,7 +10,7 @@
 #define SCREEN_WIDTH 600
 #define SCREEN_HEIGHT 690
 #define BLOCK_LEN 53
-#define BLOCK_MV 52
+#define BLOCK_MV 26
 // const int SCREEN_WIDTH = 600;
 // const int SCREEN_HEIGHT = 690;
 
@@ -151,7 +151,7 @@ int main(int argc, char *argv[])
 
 		// Provoca de el "double buffers", para renderizado multiple
 		SDL_RenderPresent(rend);
-
+		
 		// Calcular para los 60 fps
 		SDL_Delay(1000 / 60);
 	}
