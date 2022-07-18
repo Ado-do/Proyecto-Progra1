@@ -26,68 +26,68 @@ typedef struct Forma {
 } shape;
 
 // Arreglo de tetrominos
-shape blocks[7] = { // L BLOCK
-					{{255,127,0}, // Color Naranjo
-					{{0,0,1,0} 
-					,{1,1,1,0}
-					,{0,0,0,0}
-					,{0,0,0,0}}
-					,7.5,7.5,3}
-					// Z BLOCK
-					,{{255,0,0}, // Color Rojo
-					{{1,1,0,0}
-					,{0,1,1,0}
-					,{0,0,0,0}
-					,{0,0,0,0}
-					},7.5,7.5,3}
-					// I BLOCK
-					,{{0,255,255}, // Color Celeste
-					{{1,1,1,1}
-					,{0,0,0,0}
-					,{0,0,0,0}
-					,{0,0,0,0}
-					},7.5,7.5,4}
-					// J BLOCK
-					,{{0,0,255}, // Color Azul
-					{{1,0,0,0}
-					,{1,1,1,0}
-					,{0,0,0,0}
-					,{0,0,0,0}
-					},7.5,7.5,3}
-					// O BLOCK
-					,{{255,255,0}, // Color Amarillo
-					{{1,1,0,0}
-					,{1,1,0,0}
-					,{0,0,0,0}
-					,{0,0,0,0}
-					},7.5,7.5,2}
-					// S BLOCK
-					,{{0,255,0}, // Color Verde
-					{{0,1,1,0}
-					,{1,1,0,0}
-					,{0,0,0,0}
-					,{0,0,0,0}
-					},7.5,7.5,3}
-					// T BLOCK
-					,{{128,0,128}, // Color Morado
-					{{0,1,0,0}
-					,{1,1,1,0}
-					,{0,0,0,0}
-					,{0,0,0,0}
-					},7.5,7.5,3}};
+shape blocks[7] = { 
+	// L BLOCK
+	{{255,127,0}, // Color Naranjo
+	{{0,0,1,0} 
+	,{1,1,1,0}
+	,{0,0,0,0}
+	,{0,0,0,0}}
+	,7.5,7.5,3}
+	// Z BLOCK
+	,{{255,0,0}, // Color Rojo
+	{{1,1,0,0}
+	,{0,1,1,0}
+	,{0,0,0,0}
+	,{0,0,0,0}
+	},7.5,7.5,3}
+	// I BLOCK
+	,{{0,255,255}, // Color Celeste
+	{{1,1,1,1}
+	,{0,0,0,0}
+	,{0,0,0,0}
+	,{0,0,0,0}
+	},7.5,7.5,4}
+	// J BLOCK
+	,{{0,0,255}, // Color Azul
+	{{1,0,0,0}
+	,{1,1,1,0}
+	,{0,0,0,0}
+	,{0,0,0,0}
+	},7.5,7.5,3}
+	// O BLOCK
+	,{{255,255,0}, // Color Amarillo
+	{{1,1,0,0}
+	,{1,1,0,0}
+	,{0,0,0,0}
+	,{0,0,0,0}
+	},7.5,7.5,2}
+	// S BLOCK
+	,{{0,255,0}, // Color Verde
+	{{0,1,1,0}
+	,{1,1,0,0}
+	,{0,0,0,0}
+	,{0,0,0,0}
+	},7.5,7.5,3}
+	// T BLOCK
+	,{{128,0,128}, // Color Morado
+	{{0,1,0,0}
+	,{1,1,1,0}
+	,{0,0,0,0}
+	,{0,0,0,0}
+	},7.5,7.5,3}};
 
-shape reverseCols1(shape s) {
-	shape tmp = s;
-	for(int i = 0; i < s.size; i++) {
-		for(int j = 0; j < s.size/2; j++) { // Cambiamos la mitaz de las columnas por iteracion
-			bool t = s.matrix[i][j];
-			tmp.matrix[i][j] = s.matrix[i][s.size - j - 1];
-			tmp.matrix[i][s.size - j - 1] = t;
-		}
-	}
-	return tmp;
+shape reverseCols(shape s) {
+    shape tmp = s;
+    for(int i=0; i<s.size; i++) {
+        for(int j=0; j<s.size/2; j++) {
+            bool t = s.matrix[i][j];
+            tmp.matrix[i][j] = s.matrix[i][s.size - j - 1];
+            tmp.matrix[i][s.size - j - 1] = t;
+        }
+    }
+    return tmp;
 }
-
 shape transpose(shape* s) {
 	shape tmp = *s;
 	for(int i = 0; i < s->size; i++) {
@@ -98,11 +98,11 @@ shape transpose(shape* s) {
 	return tmp;
 }
 
-void rotation1(shape* s, int clockwise) {
+void rotation(shape* s, int clockwise) {
 	// *s = transpose(s);
 	switch (clockwise) {
 		case 1:
-			*s = reverseCols1(transpose(s));
+			*s = reverseCols(transpose(s));
 			return;
 		case 2:
 			*s = transpose(s);
@@ -111,9 +111,27 @@ void rotation1(shape* s, int clockwise) {
 			return;
 	}
 }
-// void rotation2(shape* s, int clockwise) {
-// 	shape tmp = *s;
-// }
+
+void counterClockwise(shape* s, int sense) {
+	shape tmp = *s;
+	for(int i = 0; i < s->size; i++) {
+		for(int j = 0; j < s->size; j++) {
+			s->matrix[i][j] = tmp.matrix[j][i];
+			// tmp.matrix[i][j] = s->matrix[j][i];
+		}
+	}
+	tmp = *s;
+    for(int i = 0; i < s->size; i++) {
+        for(int j = 0; j < s->size/2; j++) {
+            bool t = tmp.matrix[i][j];
+			s->matrix[i][j] = tmp.matrix[i][s->size - j - 1];
+			s->matrix[i][s->size - j - 1] = t;
+            // tmp.matrix[i][j]=s.matrix[i][s.size - j - 1];
+            // tmp.matrix[i][s.size - j - 1]= t;
+        }
+    }
+}
+
 void drop(shape* s) {
 	// *s = blocks[rand() % 7];
 	// Numero de pieza aleatoria
@@ -134,8 +152,8 @@ void draw(shape* s, SDL_Rect* rect, SDL_Renderer* renderer) {
 	for(int i = 0; i < s->size; i++) {
 		for(int j = 0; j < s->size; j++) {
 			if(s->matrix[i][j]) {
-				rect->x = (s->x + i) * TILE_SIZE;
-				rect->y = (s->y + j) * TILE_SIZE;
+				rect->x = (s->x + j) * TILE_SIZE;
+				rect->y = (s->y + i) * TILE_SIZE;
 				SDL_SetRenderDrawColor(renderer, s->color.r, s->color.g, s->color.b, 255); // Escoger color para cuadrados
 				SDL_RenderFillRect(renderer, rect); // Pintar Cuadrados
 				SDL_SetRenderDrawColor(renderer, 219, 219, 219, 255); // Escoger color para contorno (Gris)
@@ -144,24 +162,15 @@ void draw(shape* s, SDL_Rect* rect, SDL_Renderer* renderer) {
 			}
 		}
 	}
-	// printf("La matriz de s en DRAW es:\n");
-	// for (int i = 0; i < 4; ++i) {
-	// 	printf("| ");
-	// 	for (int j = 0; j < 4; ++j) {
-	// 		printf("%d ", s->matrix[i][j]);
-	// 	}
-	// 	printf("|\n");
-	// }
+	printf("La matriz de s en DRAW es:\n");
+	for (int i = 0; i < 4; ++i) {
+		printf("| ");
+		for (int j = 0; j < 4; ++j) {
+			printf("%d ", s->matrix[i][j]);
+		}
+		printf("|\n");
+	}
 }
-
-// void update(shape* cur) {
-// 	if (left) cur->x--;
-// 	if (right) cur->x++;
-// 	if (down) cur->y++;
-// 	if (up) cur->y--;
-// 	if (rotate) rotation1();
-// 	// if (drop);
-// }
 
 void input(shape* cur) {
 	// up = down = left = right = rotate = drop = 0;
@@ -194,14 +203,14 @@ void input(shape* cur) {
 						break;
 					case SDLK_z:
 						// rotate = 1;
-						rotation1(cur, 1);
+						rotation(cur, 2);
 						break;
 					case SDLK_x:
-						rotation1(cur, 2);
+						counterClockwise(cur, 1);
 						break;
 					case SDLK_a:
-						rotation1(cur, 1);
-						rotation1(cur, 1);
+						rotation(cur, 1);
+						rotation(cur, 1);
 						break;
 					case SDLK_SPACE:
 						drop(cur);
@@ -209,6 +218,8 @@ void input(shape* cur) {
 						break;
 					case SDLK_ESCAPE:
 						running = false;
+						break;
+					default:
 						break;
 				}
 		}
@@ -254,7 +265,7 @@ int main(int argc, char *argv[]) {
 
 	while(running) {
 		lastFrame = SDL_GetTicks();
-		if(lastFrame >= (lastTime+1000)) {
+		if(lastFrame >= (lastTime + 1000)) {
 			lastTime = lastFrame;
 			fps = frameCount;
 			frameCount = 0;
