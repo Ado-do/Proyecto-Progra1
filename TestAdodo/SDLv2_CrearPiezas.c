@@ -113,6 +113,7 @@ void rotation(shape* s, int clockwise) {
 }
 
 void counterClockwise(shape* s, int sense) {
+	// Transponer figura
 	shape tmp = *s;
 	for(int i = 0; i < s->size; i++) {
 		for(int j = 0; j < s->size; j++) {
@@ -120,6 +121,7 @@ void counterClockwise(shape* s, int sense) {
 			// tmp.matrix[i][j] = s->matrix[j][i];
 		}
 	}
+	// Hacer wea rara para que rote
 	tmp = *s;
     for(int i = 0; i < s->size; i++) {
         for(int j = 0; j < s->size/2; j++) {
@@ -203,14 +205,14 @@ void input(shape* cur) {
 						break;
 					case SDLK_z:
 						// rotate = 1;
-						rotation(cur, 2);
-						break;
-					case SDLK_x:
 						counterClockwise(cur, 1);
 						break;
+					case SDLK_x:
+						rotation(cur, 2);
+						break;
 					case SDLK_a:
-						rotation(cur, 1);
-						rotation(cur, 1);
+						counterClockwise(cur, 1);
+						counterClockwise(cur, 1);
 						break;
 					case SDLK_SPACE:
 						drop(cur);
