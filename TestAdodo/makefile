@@ -5,8 +5,14 @@ CC := gcc
 
 # set the compiler flags
 CFLAGS := `sdl2-config --libs --cflags` -ggdb3 -O0 --std=c99 -Wall -lSDL2_image -lSDL2_ttf -lm
+WIN_CFLAGS := -ggdb3 -O0 -mwindows --std=c99 -Wall
+
 # add header files here
 HDRS :=
+
+#add libs
+LIBS := -lSDL2main -lSDL2 -lSDL2_mixer -lSDL2_image -lSDL2_ttf -lm
+WIN_LIBS := -lmingw32
 
 # add source files here
 SRCS := SDLv2_CrearPiezas.c
