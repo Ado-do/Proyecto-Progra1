@@ -147,6 +147,8 @@ void drop(shape* s) {
 	}
 	// Asignar tamaño
 	s->size = blocks[randomBlock].size;
+	// Copiar letra
+	s->letra = blocks[randomBlock].letra;
 }
 
 void draw(shape* s, SDL_Rect* rect, SDL_Renderer* renderer) {

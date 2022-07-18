@@ -1,3 +1,5 @@
+#define SDL_MAIN_HANDLED
+
 #include <stdio.h>
 // Para funciones de inicializacion y apagado
 #include <SDL2/SDL.h>

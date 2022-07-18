@@ -5,6 +5,7 @@ CC := gcc
 
 # set the compiler flags
 CFLAGS := `sdl2-config --libs --cflags` -ggdb3 -O0 --std=c99 -Wall
+
 # WIN_CFLAGS := -ggdb3 -O0 -mwindows --std=c99 -Wall
 WIN_CFLAGS := -ggdb3 -O0 --std=c99 -Wall
 
@@ -12,7 +13,8 @@ WIN_CFLAGS := -ggdb3 -O0 --std=c99 -Wall
 HDRS :=
 
 #add libs
-LIBS := -lSDL2main -lSDL2 -lSDL2_mixer -lSDL2_image -lSDL2_ttf -lm
+# LIBS := -lSDL2main -lSDL2 -lSDL2_mixer -lSDL2_image -lSDL2_ttf -lm
+LIBS := -lSDL2main -lSDL2 -lSDL2_image -lm
 WIN_LIBS := -lmingw32
 
 # add source files here
@@ -28,7 +30,7 @@ EXEC := tetris.exe
 # default recipe
 all: $(EXEC)
 
-win:
+win:	
 	$(CC) -o  $(WIN_SRCS) $(WIN_SRCS).c $(WIN_CFLAGS) $(WIN_LIBS) $(LIBS)
 
 showfont: showfont.c makefile	
