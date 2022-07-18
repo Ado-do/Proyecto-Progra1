@@ -114,22 +114,21 @@ void rotation(shape* s, int clockwise) {
 
 void counterClockwise(shape* s, int sense) {
 	// Transponer figura
-	shape tmp = *s;
+	shape copy = *s;
 	for(int i = 0; i < s->size; i++) {
 		for(int j = 0; j < s->size; j++) {
-			s->matrix[i][j] = tmp.matrix[j][i];
-			// tmp.matrix[i][j] = s->matrix[j][i];
+			s->matrix[i][j] = copy.matrix[j][i];
+			// copy.matrix[i][j] = s->matrix[j][i];
 		}
 	}
 	// Hacer wea rara para que rote
-	tmp = *s;
     for(int i = 0; i < s->size; i++) {
         for(int j = 0; j < s->size/2; j++) {
-            bool t = tmp.matrix[i][j];
-			s->matrix[i][j] = tmp.matrix[i][s->size - j - 1];
+            bool t = copy.matrix[i][j];
+			s->matrix[i][j] = copy.matrix[i][s->size - j - 1];
 			s->matrix[i][s->size - j - 1] = t;
-            // tmp.matrix[i][j]=s.matrix[i][s.size - j - 1];
-            // tmp.matrix[i][s.size - j - 1]= t;
+            // copy.matrix[i][j]=s.matrix[i][s.size - j - 1];
+            // copy.matrix[i][s.size - j - 1]= t;
         }
     }
 }
