@@ -34,19 +34,20 @@ int main(int argc, char *argv[]) {
 	Uint32 render_flags = SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC;
 	SDL_Renderer* rend = SDL_CreateRenderer(win, -1, render_flags);
 
-	SDL_Surface* bloque = IMG_Load("assets/block.webp");
+	// SDL_Surface* bloque = IMG_Load("assets/block.webp");
+	// SDL_Texture* tex = SDL_CreateTextureFromSurface(rend, bloque);
 
-	SDL_Texture* tex = SDL_CreateTextureFromSurface(rend, bloque);
     SDL_Texture* fondo = IMG_LoadTexture(rend, "assets/Fondo.png");
+	SDL_Texture* bloque = IMG_LoadTexture(rend, "assets/block.webp");
 
-    if (tex == NULL || fondo == NULL) {
+    if (bloque == NULL || fondo == NULL) {
         printf("Error al crear texturas: %s\n", SDL_GetError());
     }
 
-	SDL_FreeSurface(bloque);
+	// SDL_FreeSurface(bloque);
 
 	SDL_Rect dest;
-	SDL_QueryTexture(tex, NULL, NULL, &dest.w, &dest.h);
+	SDL_QueryTexture(bloque, NULL, NULL, &dest.w, &dest.h);
 
 	// Tamaño de cada 4 casillas
 	dest.w = BLOCK_LEN + 2;
@@ -65,10 +66,11 @@ int main(int argc, char *argv[]) {
 	printf("dest.y inicial: %d\n", dest.y);
 
 	// Controlar loop game
-	bool close = 0, softdrop = 0;
+	bool close = 0;
+	// bool softdrop = 0;
 
 	// Variable que cuenta el tiempo de ejecucion
-	clock_t a;
+	// clock_t a;
 
 	while (!close) {
 		SDL_Event event;
@@ -83,44 +85,44 @@ int main(int argc, char *argv[]) {
 					// API de teclado para teclas presionadas
 					switch (event.key.keysym.scancode) {
 						case SDL_SCANCODE_W:
-							softdrop = 0;
+							// softdrop = 0;
 							dest.y -= 1;
 							printf("dest.y: %d\n", dest.y);
 							break;
 						case SDL_SCANCODE_UP:
-							softdrop = 0;
+							// softdrop = 0;
 							dest.y -= BLOCK_MV;
 							break;
 						case SDL_SCANCODE_A:
-							softdrop = 0;
+							// softdrop = 0;
 							dest.x -= 1;
 							printf("dest.x: %d\n", dest.x);
 							break;
 						case SDL_SCANCODE_LEFT:
-							softdrop = 0;
+							// softdrop = 0;
 							dest.x -= BLOCK_MV;
 							break;
 						case SDL_SCANCODE_S:
-							softdrop = 0;
+							// softdrop = 0;
 							dest.y += 1;
 							printf("dest.y: %d\n", dest.y);
 							break;
 						case SDL_SCANCODE_DOWN:
-							softdrop = 0;
+							// softdrop = 0;
 							dest.y += BLOCK_MV;
 							printf("dest.y: %d\n", dest.y);
 							break;
 						case SDL_SCANCODE_D:
-							softdrop = 0;
+							// softdrop = 0;
 							dest.x += 1;
 							printf("dest.x: %d\n", dest.x);
 							break;
 						case SDL_SCANCODE_RIGHT:
-							softdrop = 0;
+							// softdrop = 0;
 							dest.x += BLOCK_MV;
 							break;
 						case SDL_SCANCODE_ESCAPE:
-							softdrop = 0;
+							// softdrop = 0;
 							close = 1;
 							break;
 						default:
@@ -130,8 +132,8 @@ int main(int argc, char *argv[]) {
 			// printf("Poll Event: %d\n", SDL_PollEvent(&event));
             if (close) break;
 			// if(!softdrop) {
-			// 	dest.y += BLOCK_MV;
-			// 	softdrop = 1;
+				// 	dest.y += BLOCK_MV;
+				// softdrop = 1;
 			// }
 		}
 
@@ -162,7 +164,7 @@ int main(int argc, char *argv[]) {
 		// Limpiar pantalla
 		SDL_RenderClear(rend);
 		SDL_RenderCopy(rend, fondo, NULL, NULL);
-		SDL_RenderCopy(rend, tex, NULL, &dest);
+		SDL_RenderCopy(rend, bloque, NULL, &dest);
 
 		// Provoca de el "double buffers", para renderizado multiple
 		SDL_RenderPresent(rend);
@@ -172,7 +174,7 @@ int main(int argc, char *argv[]) {
 	}
 
 	// Destrozar textura
-	SDL_DestroyTexture(tex);
+	SDL_DestroyTexture(bloque);
     SDL_DestroyTexture(fondo);
 
 	// Destrozar renderizador
