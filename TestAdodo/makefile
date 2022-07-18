@@ -18,7 +18,7 @@ LIBS := -lSDL2main -lSDL2 -lSDL2_image -lm
 WIN_LIBS := -lmingw32
 
 # add source files here
-SRCS := SDLv2_CrearPiezas.c
+SRCS := SDLv1_MoverBlock2.c
 WIN_SRCS := SDLv2_CrearPiezas
 
 # generate names of object files

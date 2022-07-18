@@ -1,6 +1,8 @@
 #define SDL_MAIN_HANDLED
 
 #include <stdio.h>
+#include <stdbool.h>
+#include <time.h>
 // Para funciones de inicializacion y apagado
 #include <SDL2/SDL.h>
 // Para renderizar imagenes y graficos en pantalla
@@ -62,13 +64,12 @@ int main(int argc, char *argv[]) {
 	dest.y = 344;
 	printf("dest.y inicial: %d\n", dest.y);
 
-	// Controlar ciclo de la animacion
-	int close = 0;
+	// Controlar loop game
+	bool close = 0, softdrop = 0;
 
-	// Velocidad de la caja
-	// int speed = 600;
+	// Variable que cuenta el tiempo de ejecucion
+	clock_t a;
 
-	// Bucle del juego, donde se refresca la pantalla hasta cerrar el juego
 	while (!close) {
 		SDL_Event event;
 		// Administracion de eventos
@@ -82,35 +83,44 @@ int main(int argc, char *argv[]) {
 					// API de teclado para teclas presionadas
 					switch (event.key.keysym.scancode) {
 						case SDL_SCANCODE_W:
+							softdrop = 0;
 							dest.y -= 1;
 							printf("dest.y: %d\n", dest.y);
 							break;
 						case SDL_SCANCODE_UP:
+							softdrop = 0;
 							dest.y -= BLOCK_MV;
 							break;
 						case SDL_SCANCODE_A:
+							softdrop = 0;
 							dest.x -= 1;
 							printf("dest.x: %d\n", dest.x);
 							break;
 						case SDL_SCANCODE_LEFT:
+							softdrop = 0;
 							dest.x -= BLOCK_MV;
 							break;
 						case SDL_SCANCODE_S:
+							softdrop = 0;
 							dest.y += 1;
 							printf("dest.y: %d\n", dest.y);
 							break;
 						case SDL_SCANCODE_DOWN:
+							softdrop = 0;
 							dest.y += BLOCK_MV;
 							printf("dest.y: %d\n", dest.y);
 							break;
 						case SDL_SCANCODE_D:
+							softdrop = 0;
 							dest.x += 1;
 							printf("dest.x: %d\n", dest.x);
 							break;
 						case SDL_SCANCODE_RIGHT:
+							softdrop = 0;
 							dest.x += BLOCK_MV;
 							break;
 						case SDL_SCANCODE_ESCAPE:
+							softdrop = 0;
 							close = 1;
 							break;
 						default:
@@ -119,6 +129,10 @@ int main(int argc, char *argv[]) {
 			}
 			// printf("Poll Event: %d\n", SDL_PollEvent(&event));
             if (close) break;
+			// if(!softdrop) {
+			// 	dest.y += BLOCK_MV;
+			// 	softdrop = 1;
+			// }
 		}
 
 		// SDL_Delay(1000);
