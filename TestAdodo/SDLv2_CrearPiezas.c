@@ -23,6 +23,7 @@ typedef struct Forma {
  bool matrix[4][4];
  double x, y;
  int size;
+ char letra;
 } shape;
 
 // Arreglo de tetrominos
@@ -33,54 +34,54 @@ shape blocks[7] = {
 	,{1,1,1,0}
 	,{0,0,0,0}
 	,{0,0,0,0}}
-	,7.5,7.5,3}
+	,7.5,7.5,3, 'L'}
 	// Z BLOCK
 	,{{255,0,0}, // Color Rojo
 	{{1,1,0,0}
 	,{0,1,1,0}
 	,{0,0,0,0}
 	,{0,0,0,0}
-	},7.5,7.5,3}
+	},7.5,7.5,3, 'Z'}
 	// I BLOCK
 	,{{0,255,255}, // Color Celeste
 	{{1,1,1,1}
 	,{0,0,0,0}
 	,{0,0,0,0}
 	,{0,0,0,0}
-	},7.5,7.5,4}
+	},7.5,7.5,4, 'I'}
 	// J BLOCK
 	,{{0,0,255}, // Color Azul
 	{{1,0,0,0}
 	,{1,1,1,0}
 	,{0,0,0,0}
 	,{0,0,0,0}
-	},7.5,7.5,3}
+	},7.5,7.5,3, 'J'}
 	// O BLOCK
 	,{{255,255,0}, // Color Amarillo
 	{{1,1,0,0}
 	,{1,1,0,0}
 	,{0,0,0,0}
 	,{0,0,0,0}
-	},7.5,7.5,2}
+	},7.5,7.5,2, 'O'}
 	// S BLOCK
 	,{{0,255,0}, // Color Verde
 	{{0,1,1,0}
 	,{1,1,0,0}
 	,{0,0,0,0}
 	,{0,0,0,0}
-	},7.5,7.5,3}
+	},7.5,7.5,3, 'S'}
 	// T BLOCK
 	,{{128,0,128}, // Color Morado
 	{{0,1,0,0}
 	,{1,1,1,0}
 	,{0,0,0,0}
 	,{0,0,0,0}
-	},7.5,7.5,3}};
+	},7.5,7.5,3, 'T'}};
 
 shape reverseCols(shape s) {
     shape tmp = s;
-    for(int i=0; i<s.size; i++) {
-        for(int j=0; j<s.size/2; j++) {
+    for(int i=0; i < s.size; i++) {
+        for(int j=0; j < s.size/2; j++) {
             bool t = s.matrix[i][j];
             tmp.matrix[i][j] = s.matrix[i][s.size - j - 1];
             tmp.matrix[i][s.size - j - 1] = t;
@@ -112,7 +113,7 @@ void rotation(shape* s, int clockwise) {
 	}
 }
 
-void counterClockwise(shape* s, int sense) {
+void counterClockwise(shape* s, bool sense) {
 	// Transponer figura
 	shape copy = *s;
 	for(int i = 0; i < s->size; i++) {
@@ -121,14 +122,13 @@ void counterClockwise(shape* s, int sense) {
 			// copy.matrix[i][j] = s->matrix[j][i];
 		}
 	}
+	copy = *s;
 	// Hacer wea rara para que rote
     for(int i = 0; i < s->size; i++) {
         for(int j = 0; j < s->size/2; j++) {
             bool t = copy.matrix[i][j];
 			s->matrix[i][j] = copy.matrix[i][s->size - j - 1];
 			s->matrix[i][s->size - j - 1] = t;
-            // copy.matrix[i][j]=s.matrix[i][s.size - j - 1];
-            // copy.matrix[i][s.size - j - 1]= t;
         }
     }
 }
@@ -163,7 +163,7 @@ void draw(shape* s, SDL_Rect* rect, SDL_Renderer* renderer) {
 			}
 		}
 	}
-	printf("La matriz de s en DRAW es:\n");
+	printf("La matriz de \"%c\" en DRAW es:\n", s->letra);
 	for (int i = 0; i < 4; ++i) {
 		printf("| ");
 		for (int j = 0; j < 4; ++j) {
@@ -207,7 +207,7 @@ void input(shape* cur) {
 						counterClockwise(cur, 1);
 						break;
 					case SDLK_x:
-						rotation(cur, 2);
+						rotation(cur, 1);
 						break;
 					case SDLK_a:
 						counterClockwise(cur, 1);
