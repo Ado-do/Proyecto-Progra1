@@ -24,7 +24,7 @@ int main(int argc, char *argv[])
 										SCREEN_WIDTH, SCREEN_HEIGHT, 0);
 
 	// Poner icono a la ventana
-	SDL_Surface* icon = IMG_Load("udec_icon.webp");
+	SDL_Surface* icon = IMG_Load("assets/udec_icon.webp");
 	SDL_SetWindowIcon(win, icon);
 	SDL_FreeSurface(icon);
 	 

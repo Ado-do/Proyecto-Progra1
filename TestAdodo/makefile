@@ -19,7 +19,7 @@ WIN_LIBS := -lmingw32
 
 # add source files here
 SRCS := SDLv1_MoverBlock2.c
-WIN_SRCS := SDLv1_MoverBlock2
+WIN_SRCS := probandokross
 
 # generate names of object files
 OBJS := $(SRCS:.c=.o)
