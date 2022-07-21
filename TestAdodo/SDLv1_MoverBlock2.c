@@ -11,10 +11,10 @@
 #include <SDL2/SDL_timer.h>
 
 // Constantes de las Dimensiones
-#define SCREEN_WIDTH 600
-#define SCREEN_HEIGHT 690
-#define BLOCK_LEN 53
-#define BLOCK_MV 26
+#define SCREEN_WIDTH 870
+#define SCREEN_HEIGHT 950
+#define BLOCK_LEN 73
+#define BLOCK_MV 36
 // const int SCREEN_WIDTH = 600;
 // const int SCREEN_HEIGHT = 690;
 
@@ -51,19 +51,19 @@ int main(int argc, char *argv[]) {
 	SDL_QueryTexture(bloque, NULL, NULL, &dest.w, &dest.h);
 
 	// Tamaño de cada 4 casillas
-	dest.w = BLOCK_LEN + 2;
+	dest.w = BLOCK_LEN + 6;
 	dest.h = BLOCK_LEN;
 	printf("dest.w inicial: %d\n", dest.w);
 	printf("dest.h inicial: %d\n", dest.h);
 
 	// Asignar posicion x inicial del objeto
 	// dest.x = (SCREEN_WIDTH - dest.w) / 2;
-	dest.x = 270;
+	dest.x = 240;
 	printf("dest.x inicial: %d\n", dest.x);
 
 	// Asignar posicion y inicial del objeto
 	// dest.y = (SCREEN_HEIGHT - dest.h) / 2;
-	dest.y = 137;
+	dest.y = 189;
 	printf("dest.y inicial: %d\n", dest.y);
 
 	// Controlar loop game
@@ -88,42 +88,42 @@ int main(int argc, char *argv[]) {
 						case SDL_SCANCODE_W:
 							// softdrop = 0;
 							dest.y -= 1;
-							printf("dest.y: %d\n", dest.y);
+							printf("x: %d, y: %d\n", dest.x, dest.y);
 							break;
 						case SDL_SCANCODE_UP:
 							// softdrop = 0;
 							dest.y -= BLOCK_MV;
-							// printf("dest.y: %d\n", dest.y);
+							// printf("x: %d, y: %d\n", dest.x, dest.y);
 							break;
 						case SDL_SCANCODE_A:
 							// softdrop = 0;
 							dest.x -= 1;
-							printf("dest.x: %d\n", dest.x);
+							printf("x: %d, y: %d\n", dest.x, dest.y);
 							break;
 						case SDL_SCANCODE_LEFT:
 							// softdrop = 0;
-							dest.x -= BLOCK_MV;
-							// printf("dest.x: %d\n", dest.x);
+							dest.x -= BLOCK_MV + 2;
+							// printf("x: %d, y: %d\n", dest.x, dest.y);
 							break;
 						case SDL_SCANCODE_S:
 							// softdrop = 0;
 							dest.y += 1;
-							printf("dest.y: %d\n", dest.y);
+							printf("x: %d, y: %d\n", dest.x, dest.y);
 							break;
 						case SDL_SCANCODE_DOWN:
 							// softdrop = 0;
 							dest.y += BLOCK_MV;
-							// printf("dest.y: %d\n", dest.y);
+							// printf("x: %d, y: %d\n", dest.x, dest.y);
 							break;
 						case SDL_SCANCODE_D:
 							// softdrop = 0;
 							dest.x += 1;
-							printf("dest.x: %d\n", dest.x);
+							printf("x: %d, y: %d\n", dest.x, dest.y);
 							break;
 						case SDL_SCANCODE_RIGHT:
 							// softdrop = 0;
-							dest.x += BLOCK_MV;
-							// printf("dest.x: %d\n", dest.x);
+							dest.x += BLOCK_MV + 2;
+							// printf("x: %d, y: %d\n", dest.x, dest.y);
 							break;
 						case SDL_SCANCODE_ESCAPE:
 							// softdrop = 0;
@@ -146,23 +146,23 @@ int main(int argc, char *argv[]) {
 		// printf("dest.y por caida: %d\n", dest.y);
 
 		// Perimetro derecho
-		if (dest.x > 375) {
-			dest.x = 375;
+		if (dest.x > 544) {
+			dest.x = 544;
 			printf("BLOCKEAO. dest.x: %d\n", dest.x);
 		}
 		// Perimetro izquierdo
-		if (dest.x < 166) {
-			dest.x = 166;
+		if (dest.x < 240) {
+			dest.x = 240;
 			printf("BLOCKEAO. dest.x: %d\n", dest.x);
 		}
 		// Perimetro inferior
-		if (dest.y > 500) {
-			dest.y = 500;
+		if (dest.y > 689) {
+			dest.y = 689;
 			printf("BLOCKEAO. dest.y: %d\n", dest.y);
 		}
 		// Perimetro superior
-		if (dest.y < 137) {
-			dest.y = 137;
+		if (dest.y < 189) {
+			dest.y = 189;
 			printf("BLOCKEAO. dest.y: %d\n", dest.y);
 		}
 		// Limpiar pantalla

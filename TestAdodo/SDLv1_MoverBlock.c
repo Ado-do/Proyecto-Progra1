@@ -9,8 +9,8 @@
 #include <SDL2/SDL_timer.h>
 
 // Constantes de las Dimensiones
-const int SCREEN_WIDTH = 600;
-const int SCREEN_HEIGHT = 690;
+const int SCREEN_WIDTH = 870;
+const int SCREEN_HEIGHT = 950;
 
 int main(int argc, char *argv[])
 {
