@@ -1,25 +1,48 @@
 # A simple Makefile for compiling small SDL projects
 
+ifeq ($(OS),Windows_NT) # Windows
+# SDL Development include file and directory
+SDL_DEVELOPMENT_INC := C:\msys64\mingw64\include\SDL2
+SDL_DEVELOPMENT_DIR := C:\msys64\mingw64\lib
+
+# CFLAGS := -ggdb3 -O0 --std=c99 -Wall
+CFLAGS := -ggdb3 -O0 -mwindows --std=c99 -Wall
+
+# Binary File
+EXEC := Tetris.exe
+
+# Library Flags
+LIBS := -L$(SDL_DEVELOPMENT_DIR) -Llib -Wl,-subsystem,windows -lSDL2main -lSDL2 -lSDL2_image -lm -lmingw32
+# LIBS := -L$(SDL_DEVELOPMENT_DIR) -Llib -Wl,-subsystem,windows -lSDL2main -lSDL2 -lSDL2_image -lSDL2_mixer -lSDL2_ttf -lmingw32
+
+# Distribution
+DIST_NAME := SDL2-tetris-windows
+DIST_DEPENDENCIES := SDL2.dll
+
+else # Linux
+# SDL Development include file and directory
+SDL_DEVELOPMENT_INC := /usr/include/SDL2
+
+LIBS := `sdl2-config --libs --cflags` -lSDL2main -lSDL2 -lSDL2_image -lSDL2_mixer -lSDL2_ttf
+
+CFLAGS := -ggdb3 -O0 --std=c99 -Wall
+
+# Binary File
+EXEC := Tetris
+
+# Distribution
+DIST_NAME := SDL2-tetris-linux
+DIST_DEPENDENCIES := $(OBJ)
+endif
+
 # set the compiler
 CC := gcc
-
-# set the compiler flags
-CFLAGS := `sdl2-config --libs --cflags` -ggdb3 -O0 --std=c99 -Wall
-
-# WIN_CFLAGS := -ggdb3 -O0 -mwindows --std=c99 -Wall
-WIN_CFLAGS := -ggdb3 -O0 --std=c99 -Wall
 
 # add header files here
 HDRS :=
 
-#add libs
-# LIBS := -lSDL2main -lSDL2 -lSDL2_mixer -lSDL2_image -lSDL2_ttf -lm
-LIBS := -lSDL2main -lSDL2 -lSDL2_image -lm
-WIN_LIBS := -lmingw32
-
 # add source files here
 SRCS := SDLv1_MoverBlock2.c
-WIN_SRCS := SDLv1_MoverBlock2
 
 # generate names of object files
 OBJS := $(SRCS:.c=.o)
@@ -28,27 +51,28 @@ OBJS := $(SRCS:.c=.o)
 EXEC := tetris.exe
 
 # default recipe
-all: $(EXEC)
+all: $(EXEC)	
 
-win:	
-	$(CC) -o  $(WIN_SRCS) $(WIN_SRCS).c $(WIN_CFLAGS) $(WIN_LIBS) $(LIBS)
-
-showfont: showfont.c makefile	
-	$(CC) -o $@ $@.c $(CFLAGS) $(LIBS)
-
-glfont: glfont.c makefile	
-	$(CC) -o $@ $@.c $(CFLAGS) $(LIBS)
+# recipe for windows os
+win: $(OBJS) $(HDRS) makefile	
+	$(CC) $(CFLAGS) -o $(EXEC) $(OBJS) $(WIN_LIBS) $(LIBS)
 
 # recipe for building the final executable
 $(EXEC): $(OBJS) $(HDRS) makefile	
-	$(CC) -o $@ $(OBJS) $(CFLAGS) $(LIBS)
+	$(CC) $(CFLAGS) -o $@ $(OBJS) $(LIBS)
 
 # recipe for building object files	
-#$(OBJS): $(@:.o=.c) $(HDRS) makefile
-#    $(CC) -o $@ $(@:.o=.c) -c $(CFLAGS)
+$(OBJS): $(@:.o=.c) $(HDRS) makefile	
+	$(CC) -o $@ $(@:.o=.c) -c $(CFLAGS)
+
+# showfont: showfont.c makefile	
+# 	$(CC) -o $@ $@.c $(CFLAGS) $(LIBS)
+
+# glfont: glfont.c makefile	
+# 	$(CC) -o $@ $@.c $(CFLAGS) $(LIBS)
 
 # recipe to clean the workspace
 clean:	
 	rm -f $(EXEC) $(OBJS)
 
-.PHONY: all clean
+.PHONY: all win clean
