@@ -8,7 +8,6 @@
 #include <SDL.h>
 #include <SDL_ttf.h>
 
-
 typedef uint8_t u8;
 typedef uint16_t u16;
 typedef uint32_t u32;
@@ -329,7 +328,6 @@ clear_lines(u8 *values, s32 width, s32 height, const u8 *lines)
 	}
 }
 
-
 static bool
 check_piece_valid(const struct Piece_State *piece,
 				  const u8 *board, s32 width, s32 height)
@@ -425,7 +423,6 @@ spawn_piece(struct Game_State *game)
 	game->piece.offset_col = WIDTH / 2;
 	game->next_drop_time = game->time + get_time_to_next_drop(game->level);
 }
-
 
 static bool
 soft_drop(struct Game_State *game)

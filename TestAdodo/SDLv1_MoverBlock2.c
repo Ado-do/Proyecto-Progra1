@@ -58,7 +58,7 @@ int main(int argc, char *argv[]) {
 
 	// Asignar posicion x inicial del objeto
 	// dest.x = (SCREEN_WIDTH - dest.w) / 2;
-	dest.x = 240;
+	dest.x = 300;
 	printf("dest.x inicial: %d\n", dest.x);
 
 	// Asignar posicion y inicial del objeto

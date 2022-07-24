@@ -12,8 +12,8 @@ CFLAGS := -ggdb3 -O0 -mwindows --std=c99 -Wall
 EXEC := Tetris.exe
 
 # Library Flags
-LIBS := -L$(SDL_DEVELOPMENT_DIR) -Llib -Wl,-subsystem,windows -lSDL2main -lSDL2 -lSDL2_image -lm -lmingw32
-# LIBS := -L$(SDL_DEVELOPMENT_DIR) -Llib -Wl,-subsystem,windows -lSDL2main -lSDL2 -lSDL2_image -lSDL2_mixer -lSDL2_ttf -lmingw32
+LIBS := -lSDL2main -lSDL2 -lSDL2_image -lm -lmingw32
+# LIBS := -lSDL2main -lSDL2 -lSDL2_image -lSDL2_mixer -lSDL2_ttf -lmingw32
 
 # Distribution
 DIST_NAME := SDL2-tetris-windows
@@ -42,7 +42,7 @@ CC := gcc
 HDRS :=
 
 # add source files here
-SRCS := SDLv1_MoverBlock2.c
+SRCS := SDLv3_Gameboard.c
 
 # generate names of object files
 OBJS := $(SRCS:.c=.o)
@@ -53,15 +53,11 @@ EXEC := tetris.exe
 # default recipe
 all: $(EXEC)	
 
-# recipe for windows os
-win: $(OBJS) $(HDRS) makefile	
-	$(CC) $(CFLAGS) -o $(EXEC) $(OBJS) $(WIN_LIBS) $(LIBS)
-
 # recipe for building the final executable
-$(EXEC): $(OBJS) $(HDRS) makefile	
+$(EXEC): $(OBJS) $(HDRS) $(SRCS) makefile	
 	$(CC) $(CFLAGS) -o $@ $(OBJS) $(LIBS)
 
-# recipe for building object files	
+# recipe for building object files
 $(OBJS): $(@:.o=.c) $(HDRS) makefile	
 	$(CC) -o $@ $(@:.o=.c) -c $(CFLAGS)
 

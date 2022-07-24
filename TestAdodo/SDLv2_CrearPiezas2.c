@@ -11,8 +11,8 @@
 #define WIDTH 600
 #define HEIGHT 690
 #define TILE_SIZE 26
-#define INICIAL_X 9.5
-#define INICIAL_Y 8.3
+#define INICIAL_X 15
+#define INICIAL_Y 15
 
 bool running;
 
