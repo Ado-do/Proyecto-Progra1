@@ -8,16 +8,20 @@
 #include <time.h>
 
 // Constantes
-#define WIDTH 600
-#define HEIGHT 690
-#define TILE_SIZE 26
-#define INICIAL_X 15
-#define INICIAL_Y 15
+#define WIDTH 870
+#define HEIGHT 950
+#define TILE_SIZE 36.3
+#define INICIAL_X 9.92
+#define INICIAL_Y 6.23
+#define SCREEN_FPS 60
+#define SCREEN_TICKS_PER_FRAME 1000/SCREEN_FPS
 
 bool running;
 
-int frameCount, timerFPS, lastFrame, fps;
-// bool left, right, up, down, rotate, drop;
+float FPS;
+uint64_t countFrames = 0;
+uint64_t start_time, current_time, capTimer, frame_time;
+bool droped;
 
 // Estructura de piezas
 typedef struct Forma {
@@ -162,20 +166,21 @@ void draw(shape* s, SDL_Rect* rect, SDL_Renderer* renderer) {
 				rect->y = (s->y + i) * TILE_SIZE;
 				SDL_SetRenderDrawColor(renderer, s->color.r, s->color.g, s->color.b, 255); // Escoger color para cuadrados
 				SDL_RenderFillRect(renderer, rect); // Pintar Cuadrados
-				SDL_SetRenderDrawColor(renderer, 219, 219, 219, 255); // Escoger color para contorno (Gris)
-				// SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255); // Escoger color para contorno (Blanco)
+				// SDL_SetRenderDrawColor(renderer, 219, 219, 219, 255); // Escoger color para contorno (Gris)
+				SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255); // Escoger color para contorno (Negro)
 				SDL_RenderDrawRect(renderer, rect); // Pintar contorno
 			}
 		}
 	}
-	printf("La matriz de \"%c\" en DRAW es:\n", s->letra);
-	for (int i = 0; i < 4; ++i) {
-		printf("| ");
-		for (int j = 0; j < 4; ++j) {
-			printf("%d ", s->matrix[i][j]);
-		}
-		printf("|\n");
-	}
+	// IMPRIMIR MATRIZ ACTUAL DE PIEZA
+	// printf("La matriz de \"%c\" en DRAW es:\n", s->letra);
+	// for (int i = 0; i < 4; ++i) {
+	// 	printf("| ");
+	// 	for (int j = 0; j < 4; ++j) {
+	// 		printf("%d ", s->matrix[i][j]);
+	// 	}
+	// 	printf("|\n");
+	// }
 }
 
 void input(shape* cur) {
@@ -216,7 +221,6 @@ void input(shape* cur) {
 						break;
 					case SDLK_SPACE:
 						drop(cur);
-						// drop = 1;
 						break;
 					case SDLK_ESCAPE:
 						running = false;
@@ -234,25 +238,19 @@ void render(SDL_Renderer* renderer, SDL_Texture* fondo) {
 
     SDL_RenderCopy(renderer, fondo, NULL, NULL);
 
-	frameCount++;
-	int timerFPS = SDL_GetTicks() - lastFrame;
-	if (timerFPS < (1000/60)) {
-		SDL_Delay((1000/60) - timerFPS);
-	}
 }
 
 int main(int argc, char *argv[]) {
 	srand(time(NULL));
 
-	shape cur = blocks[rand() % 7];
+	shape cur = blocks[4];
+	// shape cur = blocks[rand() % 7];
 
 	SDL_Rect rect;
-	rect.w = rect.h = TILE_SIZE;
+	rect.w = TILE_SIZE;
+	rect.h = TILE_SIZE;
 
-	running = 1;
-	static int lastTime = 0;
-
-	SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "0");
+	SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "best");
 	if (SDL_Init(SDL_INIT_EVERYTHING) != 0) {
 		printf("Error inicializando SDL: %s\n", SDL_GetError());
 	}
@@ -263,28 +261,32 @@ int main(int argc, char *argv[]) {
 		printf("Error al intentar SDL_CreateWindowAndRenderer(): %s\n", SDL_GetError());
 	}	
 	SDL_SetWindowTitle(window, "Intento de Tetris");
-	SDL_Surface* icon = IMG_Load("udec_icon.webp");
+	SDL_Surface* icon = IMG_Load("assets/udec_icon.webp");
 	SDL_SetWindowIcon(window, icon);
 	SDL_FreeSurface(icon);
 
     SDL_Texture* fondo = IMG_LoadTexture(renderer, "assets/Fondo.png");
 
-    printf("Si es que hay algun error, es: %s\n", SDL_GetError());
-
+	running = 1;
+	start_time = SDL_GetTicks64();
 	while(running) {
-		lastFrame = SDL_GetTicks();
-		if(lastFrame >= (lastTime + 1000)) {
-			lastTime = lastFrame;
-			fps = frameCount;
-			frameCount = 0;
-		}
+		capTimer = SDL_GetTicks64();
 
-		// update(&cur);
 		input(&cur);
-		render(renderer, fondo);
 
+		render(renderer, fondo);
 		draw(&cur, &rect, renderer);
 		SDL_RenderPresent(renderer);
+		if (countFrames % 48 == 0) cur.y++;
+
+		++countFrames; // Contar frames
+		frame_time = SDL_GetTicks64() - capTimer; // Tiempo de creacion de frame
+		if (frame_time < SCREEN_TICKS_PER_FRAME) SDL_Delay(SCREEN_TICKS_PER_FRAME - frame_time); 
+		// Esperar si el tiempo de creacion de frame fue menor a 1000/60 ticks, de manera de que el juego vaya a 60FPS
+		current_time = SDL_GetTicks64() - start_time; // Tiempo actual en juego
+		// FPS
+		FPS = countFrames / (current_time / 1000.f); // Frames divididos segundos
+		printf("FPS: %.2f\n", FPS);
 	}
 
 	SDL_DestroyRenderer(renderer);

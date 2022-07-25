@@ -63,7 +63,7 @@ $(EXEC): $(OBJS) $(HDRS) $(SRCS) makefile
 	$(CC) $(CFLAGS) -o $@ $(OBJS) $(LIBS)
 
 # recipe for building object files
-$(OBJS): $(@:.o=.c) $(HDRS) makefile	
+$(OBJS): $(@:.o=.c) $(HDRS) $(SRCS) makefile	
 	$(CC) -o $@ $(@:.o=.c) -c $(CFLAGS)
 
 # showfont: showfont.c makefile	
