@@ -13,7 +13,7 @@
 #define TILE_SIZE 36.3
 #define INICIAL_X 9.92
 #define INICIAL_Y 6.23
-#define SCREEN_FPS 60
+#define SCREEN_FPS 61
 #define SCREEN_TICKS_PER_FRAME 1000/SCREEN_FPS
 
 bool running;
@@ -273,18 +273,18 @@ int main(int argc, char *argv[]) {
 		capTimer = SDL_GetTicks64();
 
 		input(&cur);
+		if (countFrames % 48 == 0) cur.y++;
 
 		render(renderer, fondo);
 		draw(&cur, &rect, renderer);
 		SDL_RenderPresent(renderer);
-		if (countFrames % 48 == 0) cur.y++;
 
 		++countFrames; // Contar frames
 		frame_time = SDL_GetTicks64() - capTimer; // Tiempo de creacion de frame
 		if (frame_time < SCREEN_TICKS_PER_FRAME) SDL_Delay(SCREEN_TICKS_PER_FRAME - frame_time); 
 		// Esperar si el tiempo de creacion de frame fue menor a 1000/60 ticks, de manera de que el juego vaya a 60FPS
+
 		current_time = SDL_GetTicks64() - start_time; // Tiempo actual en juego
-		// FPS
 		FPS = countFrames / (current_time / 1000.f); // Frames divididos segundos
 		printf("FPS: %.2f\n", FPS);
 	}
