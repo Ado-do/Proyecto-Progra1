@@ -5,8 +5,8 @@ ifeq ($(OS),Windows_NT) # Windows
 SDL_DEVELOPMENT_INC := C:\msys64\mingw64\include\SDL2
 SDL_DEVELOPMENT_DIR := C:\msys64\mingw64\lib
 
-# CFLAGS := -ggdb3 -O0 --std=c99 -Wall
-CFLAGS := -ggdb3 -O0 -mwindows --std=c99 -Wall
+CFLAGS := -ggdb3 -O0 --std=c99 -Wall
+# CFLAGS := -ggdb3 -O0 -mwindows --std=c99 -Wall
 
 # Binary File
 EXEC := Tetris.exe
@@ -18,6 +18,8 @@ LIBS := -lSDL2main -lSDL2 -lSDL2_image -lm -lmingw32
 # Distribution
 DIST_NAME := SDL2-tetris-windows
 DIST_DEPENDENCIES := SDL2.dll
+
+RM := del /q /f
 
 else # Linux
 # SDL Development include file and directory
@@ -33,6 +35,9 @@ EXEC := Tetris
 # Distribution
 DIST_NAME := SDL2-tetris-linux
 DIST_DEPENDENCIES := $(OBJ)
+
+RM := rm -f
+
 endif
 
 # set the compiler
@@ -42,7 +47,7 @@ CC := gcc
 HDRS :=
 
 # add source files here
-SRCS := SDLv3_Gameboard.c
+SRCS := SDLv1_MoverBlock2.c
 
 # generate names of object files
 OBJS := $(SRCS:.c=.o)
@@ -69,6 +74,6 @@ $(OBJS): $(@:.o=.c) $(HDRS) makefile
 
 # recipe to clean the workspace
 clean:	
-	rm -f $(EXEC) $(OBJS)
+	$(RM) $(EXEC) $(OBJS)
 
 .PHONY: all win clean

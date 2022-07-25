@@ -1,3 +1,10 @@
 {
-    "C_Cpp.default.configurationProvider": "ms-vscode.makefile-tools"
+    "C_Cpp.default.configurationProvider": "ms-vscode.makefile-tools",
+    "makefile.launchConfigurations": [
+        {
+            "cwd": "c:\\Users\\Aibe\\Documents\\GitHub\\Proyecto-Tetris\\TestAdodo",
+            "binaryPath": "c:\\Users\\Aibe\\Documents\\GitHub\\Proyecto-Tetris\\TestAdodo\\tetris.exe",
+            "binaryArgs": []
+        }
+    ]
 }

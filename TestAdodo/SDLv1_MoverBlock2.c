@@ -10,13 +10,13 @@
 // Para usar funciones basadas en tiempo como SDL_Delay()
 #include <SDL2/SDL_timer.h>
 
-// Constantes de las Dimensiones
+// Constantes
 #define SCREEN_WIDTH 870
 #define SCREEN_HEIGHT 950
 #define BLOCK_LEN 73
 #define BLOCK_MV 36
-// const int SCREEN_WIDTH = 600;
-// const int SCREEN_HEIGHT = 690;
+const int SCREEN_FPS = 60;
+const int SCREEN_TICKS_PER_FRAME = 1000 / SCREEN_FPS;
 
 int main(int argc, char *argv[]) {
 	if (SDL_Init(SDL_INIT_EVERYTHING) != 0) printf("Error inicializando SDL: %s\n", SDL_GetError());
@@ -32,7 +32,8 @@ int main(int argc, char *argv[]) {
 	SDL_SetWindowIcon(win, icon);
 	SDL_FreeSurface(icon);
 	 
-	Uint32 render_flags = SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC;
+	// Uint32 render_flags = SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC;
+	Uint32 render_flags = SDL_RENDERER_ACCELERATED;
 	SDL_Renderer* rend = SDL_CreateRenderer(win, -1, render_flags);
 
 	// SDL_Surface* bloque = IMG_Load("assets/block.webp");
@@ -58,7 +59,7 @@ int main(int argc, char *argv[]) {
 
 	// Asignar posicion x inicial del objeto
 	// dest.x = (SCREEN_WIDTH - dest.w) / 2;
-	dest.x = 300;
+	dest.x = 393;
 	printf("dest.x inicial: %d\n", dest.x);
 
 	// Asignar posicion y inicial del objeto
@@ -68,10 +69,10 @@ int main(int argc, char *argv[]) {
 
 	// Controlar loop game
 	bool close = 0;
-	// bool softdrop = 0;
+	uint32_t countFrames = 0;
+	uint64_t start_time, current_time;
 
-	// Variable que cuenta el tiempo de ejecucion
-	// clock_t a;
+	start_time = SDL_GetTicks64();
 
 	while (!close) {
 		SDL_Event event;
@@ -141,6 +142,12 @@ int main(int argc, char *argv[]) {
 			// }
 		}
 
+		current_time = SDL_GetTicks64() - start_time;
+		float FPS = countFrames / (current_time / 1000.f);
+		// if (FPS > 2000000) FPS = 0;
+
+		printf("FPS: %f\n", FPS);
+		
 		// SDL_Delay(1000);
 		// dest.y += 68;
 		// printf("dest.y por caida: %d\n", dest.y);
@@ -174,7 +181,8 @@ int main(int argc, char *argv[]) {
 		SDL_RenderPresent(rend);
 		
 		// Calcular para los 60 fps
-		SDL_Delay(1000 / 60);
+		// SDL_Delay(1000 / 60);
+		++countFrames;
 	}
 
 	// Destrozar textura
