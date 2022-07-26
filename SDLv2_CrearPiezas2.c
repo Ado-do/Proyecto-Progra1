@@ -28,7 +28,6 @@ bool droped; // Flag de drop
 
 // Estructuras de texto
 typedef struct Texto {
-	// char* str;
 	char str[100];
 	TTF_Font* font;
 	SDL_Color color;
@@ -252,8 +251,7 @@ void input(Shape* cur) {
 
 // Funcion que inicializa objeto de la estructura Text
 Text* initFont(char *str, char *font, int size, SDL_Color color, int x, int y) {
-	Text* text = (Text*) malloc(sizeof(Text));
-	// text->str = (char*) malloc(strlen(str) + 10 * (sizeof(char)));
+	Text* text = malloc(sizeof(Text));
 	// Se castea a un dato tipo "Text", ya que como estamos inicializandolo desde un puntero tenemos que usar un literal compuesto (googlea "Compound literal")
 	*text = (Text){"", 									// String del texto
 				TTF_OpenFont(font, size),				// Fuente (Cargada con ayuda de TTF_OpenFont("path del font", tamaño letra))

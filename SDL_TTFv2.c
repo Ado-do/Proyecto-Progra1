@@ -5,6 +5,7 @@
 #include <SDL2/SDL_image.h>
 #include <SDL2/SDL_ttf.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include <stdbool.h>
 
@@ -17,6 +18,7 @@
 // Estructuras de texto
 typedef struct Texto {
 	char str[100];
+	// char* str;
 	TTF_Font* font;
 	SDL_Color color;
 	SDL_Texture* texture;
@@ -46,6 +48,7 @@ void InitSDL() {
 // Funcion que inicializa objeto de la estructura Text
 Text* initFont(char *str, char *font, int size, SDL_Color color, int x, int y) {
 	Text* text = malloc(sizeof(Text));
+
 	// Se castea a un dato tipo "Text", ya que como estamos inicializandolo desde un puntero tenemos que usar un literal compuesto (googlea "Compound literal")
 	*text = (Text){"", 									// String del texto
 				TTF_OpenFont(font, size),				// Fuente (Cargada con ayuda de TTF_OpenFont("path del font", tamaño letra))
