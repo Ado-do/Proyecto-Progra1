@@ -95,8 +95,9 @@ int main(int argc, char const *argv[]) {
 		printf("FPS: %.2f\n", FPS);
     }
     
-    
+	SDL_DestroyTexture(textFPS.texture);
     SDL_DestroyRenderer(render);
     SDL_DestroyWindow(win);
+    TTF_Quit();
     SDL_Quit();
 }

@@ -46,12 +46,13 @@ void InitSDL() {
 // Funcion que inicializa objeto de la estructura Text
 Text* initFont(char *str, char *font, int size, SDL_Color color, int x, int y) {
 	Text* text = malloc(sizeof(Text));
-	*text = (Text){"", 								// String del texto
-			TTF_OpenFont(font, size),				// Fuente (Cargada con ayuda de TTF_OpenFont("path del font", tamaño letra))
-			{color.r, color.g, color.b, color.a},	// Color del texto
-			NULL,									// Textura (NULL ya que se crea y asigna posteriormente)
-			{x, y, 0, 0}};							// Rect del texto (Posicion/Tamaño), el tamaño se asigna posteriormente al crear la textura
-	sprintf(text->str, "%s", str);
+	// Se castea a un dato tipo "Text", ya que como estamos inicializandolo desde un puntero tenemos que usar un literal compuesto (googlea "Compound literal")
+	*text = (Text){"", 									// String del texto
+				TTF_OpenFont(font, size),				// Fuente (Cargada con ayuda de TTF_OpenFont("path del font", tamaño letra))
+				{color.r, color.g, color.b, color.a},	// Color del texto
+				NULL,									// Textura (NULL ya que se crea y asigna posteriormente)
+				{x, y, 0, 0}};							// Rect del texto (Posicion/Tamaño), el tamaño se asigna posteriormente al crear la textura
+	strcpy(text->str, str);
 	return text;
 }
 
@@ -69,6 +70,13 @@ void loadFontTexture(SDL_Renderer *renderer, Text *text) {
 	SDL_FreeSurface(textSurface);
 }
 
+// Funcion que libera texto junto a su textura y fuente cargada
+void freeFont(Text *text) {
+	SDL_DestroyTexture(text->texture);
+	TTF_CloseFont(text->font);
+	free(text);
+}
+
 // Funcion que renderiza textura de texto
 void renderFont(SDL_Renderer *renderer, Text *text) {
 	SDL_RenderCopy(renderer, text->texture, NULL, &text->rect);
@@ -77,7 +85,8 @@ void renderFont(SDL_Renderer *renderer, Text *text) {
 int main(int argc, char const *argv[]) {
 	
 	InitSDL();
-	Text* textFPS = initFont("", "assets/Font.ttf", 20, (SDL_Color){0, 255, 0, 255}, 10, 10);
+	// Arriba estan los parametros de initFont
+	Text* textFPS = initFont("FPS: ", "assets/Font.ttf", 20, (SDL_Color){0, 255, 0, 255}, 10, 10); // Uso de un "Compound literal"
 
 	// Frames y time
 	float FPS;
@@ -96,22 +105,22 @@ int main(int argc, char const *argv[]) {
 			// Presionar boton de cerrar
 			if (event.type == SDL_QUIT) {
 				printf("Total frames: %lld\n", countFrames);
-				SDL_Delay(2000);
+				SDL_Delay(1000);
 				running = false;
 				break;
 			} 
 			// Presionar ESCAPE
 			if (event.type == SDL_KEYDOWN && event.key.keysym.sym == SDLK_ESCAPE) {
 				printf("Total frames: %lld\n", countFrames);
-				SDL_Delay(2000);
+				SDL_Delay(1000);
 				running = false;
 				break;
 			}
 			if (!running) break;
 		}
-		// Crear letra de FPS
+		// Crear string de FPS y textura
 		if (countFrames != 0) {
-			sprintf(textFPS->str, "FPS: %.2f", FPS); // Crear string con FPS actuales
+			gcvt(FPS, 4, textFPS->str + 5); // gcvt convierte un float a string y lo copia en un puntero de tipo char (aqui lo copie en la posicion 5 del string)
 			loadFontTexture(renderer, textFPS); // Cargar textura de string con cantidad de FPS
 		}
 
@@ -131,7 +140,9 @@ int main(int argc, char const *argv[]) {
 		printf("FPS: %.2f\n", FPS); // Mostrar fps en consola
 	}
 	
+	freeFont(textFPS);
 	SDL_DestroyRenderer(renderer);
 	SDL_DestroyWindow(win);
+	TTF_Quit();
 	SDL_Quit();
 }

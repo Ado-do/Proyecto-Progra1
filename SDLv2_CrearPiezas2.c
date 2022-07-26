@@ -28,6 +28,7 @@ bool droped; // Flag de drop
 
 // Estructuras de texto
 typedef struct Texto {
+	// char* str;
 	char str[100];
 	TTF_Font* font;
 	SDL_Color color;
@@ -251,13 +252,15 @@ void input(Shape* cur) {
 
 // Funcion que inicializa objeto de la estructura Text
 Text* initFont(char *str, char *font, int size, SDL_Color color, int x, int y) {
-	Text* text = malloc(sizeof(Text));
-	*text = (Text){"", 								// String del texto
-			TTF_OpenFont(font, size),				// Fuente (Cargada con ayuda de TTF_OpenFont("path del font", tamaño letra))
-			{color.r, color.g, color.b, color.a},	// Color del texto
-			NULL,									// Textura (NULL ya que se crea y asigna posteriormente)
-			{x, y, 0, 0}};							// Rect del texto (Posicion/Tamaño), el tamaño se asigna posteriormente al crear la textura
-	sprintf(text->str, "%s", str);
+	Text* text = (Text*) malloc(sizeof(Text));
+	// text->str = (char*) malloc(strlen(str) + 10 * (sizeof(char)));
+	// Se castea a un dato tipo "Text", ya que como estamos inicializandolo desde un puntero tenemos que usar un literal compuesto (googlea "Compound literal")
+	*text = (Text){"", 									// String del texto
+				TTF_OpenFont(font, size),				// Fuente (Cargada con ayuda de TTF_OpenFont("path del font", tamaño letra))
+				{color.r, color.g, color.b, color.a},	// Color del texto
+				NULL,									// Textura (NULL ya que se crea y asigna posteriormente)
+				{x, y, 0, 0}};							// Rect del texto (Posicion/Tamaño), el tamaño se asigna posteriormente al crear la textura
+	strcpy(text->str, str);
 	return text;
 }
 
@@ -280,6 +283,13 @@ void renderFont(SDL_Renderer *renderer, Text *text) {
 	SDL_RenderCopy(renderer, text->texture, NULL, &text->rect);
 }
 
+// Funcion que libera texto junto a su textura y fuente cargada
+void freeFont(Text *text) {
+	SDL_DestroyTexture(text->texture);
+	TTF_CloseFont(text->font);
+	free(text);
+}
+
 // Renderizar texturas de fondo
 void renderBackground(SDL_Renderer* renderer, SDL_Texture* background) {
     SDL_RenderCopy(renderer, background, NULL, NULL);
@@ -295,7 +305,7 @@ int main(int argc, char *argv[]) {
 	rect.w = TILE_SIZE;
 	rect.h = TILE_SIZE;
 
-	Text* textFPS = initFont("", "assets/Font.ttf", 20, (SDL_Color){0, 255, 0, 255}, 10, 10);
+	Text* textFPS = initFont("FPS: ", "assets/Font.ttf", 20, (SDL_Color){0, 255, 0, 255}, 10, 10);
     SDL_Texture* fondo = IMG_LoadTexture(renderer, "assets/Fondos/FondoTest.png"); // Cargar Fondo
 
 	// Variables de control de tiempo y frames
@@ -314,9 +324,9 @@ int main(int argc, char *argv[]) {
 		// SoftDrop (Cada 48 frames baja 1 celda)
 		if (countFrames % 48 == 0) cur.y++;
 
-		// Crear letra de FPS
+		// Crear string de FPS y textura
 		if (countFrames != 0) {
-			sprintf(textFPS->str, "FPS: %.2f", FPS); // Crear string con FPS actuales
+			gcvt(FPS, 4, textFPS->str + 5); // gcvt convierte un float a string y lo copia en un puntero de tipo char (aqui lo copie en la posicion 5 del string)
 			loadFontTexture(renderer, textFPS); // Cargar textura de string con cantidad de FPS
 		}
 
@@ -338,6 +348,7 @@ int main(int argc, char *argv[]) {
 		printf("FPS: %.2f\n", FPS); // Mostrar fps en consola
 	}
 
+	freeFont(textFPS);
 	SDL_DestroyRenderer(renderer);
 	SDL_DestroyWindow(window);
 	SDL_Quit();
