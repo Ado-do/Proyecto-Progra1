@@ -47,7 +47,7 @@ CC := gcc
 HDRS :=
 
 # add source files here
-SRCS := SDLv1_MoverBlock2.c
+SRCS := SDLv2_CrearPiezas2.c
 
 # generate names of object files
 OBJS := $(SRCS:.c=.o)
