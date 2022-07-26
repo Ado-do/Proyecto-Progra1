@@ -18,17 +18,21 @@
 #define INICIAL_X 3
 #define INICIAL_Y 0
 #define SCREEN_FPS 60
-#define SCREEN_TICKS_PER_FRAME 1010/SCREEN_FPS
+#define SCREEN_TICKS_PER_FRAME 1000/SCREEN_FPS
 
 // Variables globales
-SDL_Renderer* renderer = NULL;
-SDL_Window* window = NULL;
+SDL_Renderer* renderer;
+SDL_Window* window;
 bool running; // Flag loop game
-bool droped; // Flag de drop
+int droped; // Flag de drop
+// Variables de control de tiempo y frames
+float FPS;
+uint64_t countFrames = 0; // Contador de frames
+float start_time, current_time, capTimer, frame_time; // Tiempos
 
 // Estructuras de texto
 typedef struct Texto {
-	char str[100];
+	char string[100];
 	TTF_Font* font;
 	SDL_Color color;
 	SDL_Texture* texture;
@@ -114,15 +118,15 @@ void InitSDL() {
 
 // Funciones que seran remplazadas por "clockWise"
 Shape reverseCols(Shape s) {
-    Shape tmp = s;
-    for(int i=0; i < s.size; i++) {
-        for(int j=0; j < s.size/2; j++) {
-            bool t = s.matrix[i][j];
-            tmp.matrix[i][j] = s.matrix[i][s.size - j - 1];
-            tmp.matrix[i][s.size - j - 1] = t;
-        }
-    }
-    return tmp;
+	Shape tmp = s;
+	for(int i=0; i < s.size; i++) {
+		for(int j=0; j < s.size/2; j++) {
+			bool t = s.matrix[i][j];
+			tmp.matrix[i][j] = s.matrix[i][s.size - j - 1];
+			tmp.matrix[i][s.size - j - 1] = t;
+		}
+	}
+	return tmp;
 }
 Shape transpose(Shape* s) {
 	Shape tmp = *s;
@@ -158,23 +162,23 @@ void clockWise(Shape* s, bool sense) {
 	}
 	copy = *s;
 	// Hacer wea rara para que rote
-    for(int i = 0; i < s->size; i++) {
-        for(int j = 0; j < s->size/2; j++) {
-            bool t = copy.matrix[i][j];
+	for(int i = 0; i < s->size; i++) {
+		for(int j = 0; j < s->size/2; j++) {
+			bool t = copy.matrix[i][j];
 			s->matrix[i][j] = copy.matrix[i][s->size - j - 1];
 			s->matrix[i][s->size - j - 1] = t;
-        }
-    }
+		}
+	}
 }
 
 // Funcion que se ejecuta cuando se dropea la pieza y esta pasa al stack (Se crea una pieza nueva)
 void drop(Shape* s) {
 	*s = blocks[rand() % 7];
-	droped = true;
+	droped = 50;
 }
 
 // Dibujar pieza
-void draw(Shape* s, SDL_Rect* rect, SDL_Renderer* renderer) {
+void drawPiece(Shape* s, SDL_Rect* rect, SDL_Renderer* renderer) {
 	for(int i = 0; i < s->size; i++) {
 		for(int j = 0; j < s->size; j++) {
 			if(s->matrix[i][j]) {
@@ -189,7 +193,7 @@ void draw(Shape* s, SDL_Rect* rect, SDL_Renderer* renderer) {
 		}
 	}
 	// IMPRIMIR MATRIZ ACTUAL DE PIEZA
-	// printf("La matriz de \"%c\" en DRAW es:\n", s->letter);
+	// printf("La matriz de \"%c\" en drawPiece es:\n", s->letter);
 	// for (int i = 0; i < 4; ++i) {
 	// 	printf("| ");
 	// 	for (int j = 0; j < 4; ++j) {
@@ -245,6 +249,9 @@ void input(Shape* cur) {
 					default:
 						break;
 				}
+				break;
+			default:
+				break;
 		}
 	}
 }
@@ -252,19 +259,20 @@ void input(Shape* cur) {
 // Funcion que inicializa objeto de la estructura Text
 Text* initFont(char *str, char *font, int size, SDL_Color color, int x, int y) {
 	Text* text = malloc(sizeof(Text));
-	// Se castea a un dato tipo "Text", ya que como estamos inicializandolo desde un puntero tenemos que usar un literal compuesto (googlea "Compound literal")
-	*text = (Text){"", 									// String del texto (Vacio por ahora)
-				TTF_OpenFont(font, size),				// Fuente (Cargada con ayuda de TTF_OpenFont("path del font", tamaño letra))
-				{color.r, color.g, color.b, color.a},	// Color del texto
-				NULL,									// Textura (NULL ya que se crea y asigna posteriormente)
-				{x, y, 0, 0}};							// Rect del texto (Posicion/Tamaño), el tamaño se asigna posteriormente al crear la textura
-	strcpy(text->str, str);								// Copiar string recibido en string de estructura
+	*text = (Text){	// Se castea a un dato tipo "Text", ya que como estamos inicializandolo desde un puntero tenemos que usar un literal compuesto (googlea "Compound literal")
+		.string		= "", 									// String del texto (vacio por ahora)
+		.font 		= TTF_OpenFont(font, size),				// Fuente (Cargada con ayuda de TTF_OpenFont("path del font", tamaño letra))
+		.color 		= color,								// Color del texto
+		.texture	= NULL,									// Textura (NULL ya que se crea y asigna posteriormente)
+		.rect 		= {x, y, 0, 0}							// Rect del texto (Posicion/Tamaño), el tamaño se asigna posteriormente al crear la textura
+	};
+	strcpy(text->string, str);	// Copiar string recibido en string de estructura
 	return text;
 }
 
 // Funcion que carga textura de texto
 void loadFontTexture(SDL_Renderer *renderer, Text *text) {
-	SDL_Surface* textSurface = TTF_RenderText_Solid(text->font, text->str, text->color);
+	SDL_Surface* textSurface = TTF_RenderText_Solid(text->font, text->string, text->color);
 	if (textSurface == NULL) {
 		printf("Error al intentar crear textSurface: %s\n", TTF_GetError());
 	} else {
@@ -290,7 +298,7 @@ void freeFont(Text *text) {
 
 // Renderizar texturas de fondo
 void renderBackground(SDL_Renderer* renderer, SDL_Texture* background) {
-    SDL_RenderCopy(renderer, background, NULL, NULL);
+	SDL_RenderCopy(renderer, background, NULL, NULL);
 }
 
 int main(int argc, char *argv[]) {
@@ -304,13 +312,8 @@ int main(int argc, char *argv[]) {
 	rect.h = TILE_SIZE;
 
 	Text* textFPS = initFont("FPS: ", "assets/Font.ttf", 20, (SDL_Color){0, 255, 0, 255}, 10, 10);
-    SDL_Texture* fondo = IMG_LoadTexture(renderer, "assets/Fondos/FondoTest.png"); // Cargar Fondo
+	SDL_Texture* fondo = IMG_LoadTexture(renderer, "assets/Fondos/FondoTest.png"); // Cargar Fondo
 	if (fondo == NULL) printf("Error al crear textura fondo: %s\n", SDL_GetError());
-
-	// Variables de control de tiempo y frames
-	float FPS;
-	uint64_t countFrames = 0; // Contador de frames
-	uint64_t start_time, current_time, capTimer, frame_time; // Tiempos
 
 	// Iniciar gameloop
 	running = 1; // Flag de control de gameloop
@@ -321,11 +324,15 @@ int main(int argc, char *argv[]) {
 		input(&cur);
 
 		// SoftDrop (Cada 48 frames baja 1 celda)
-		if (countFrames % 48 == 0) cur.y++;
+		if (countFrames % 48 == 0 && droped == 0) {
+			cur.y++;
+		} else if (droped > 0) {
+			droped--;
+		}
 
 		// Crear string de FPS y textura
 		if (countFrames != 0) {
-			snprintf(textFPS->str + 5, 5, "%.1f", FPS);
+			snprintf(textFPS->string + 5, 5, "%.1f", FPS);
 			loadFontTexture(renderer, textFPS); // Cargar textura de string con cantidad de FPS
 		}
 
@@ -333,7 +340,7 @@ int main(int argc, char *argv[]) {
 		/* ************* ACTUALIZAR TEXTURAS DEL FRAME ACTUAL EN EL RENDER ************* */
 		renderBackground(renderer, fondo);
 		renderFont(renderer, textFPS);
-		draw(&cur, &rect, renderer);
+		drawPiece(&cur, &rect, renderer);
 		/* ***************************************************************************** */
 		SDL_RenderPresent(renderer);
 		++countFrames; // Contar frames
@@ -344,7 +351,7 @@ int main(int argc, char *argv[]) {
 		
 		current_time = SDL_GetTicks64() - start_time; // Tiempo actual en juego
 		FPS = countFrames / (current_time / 1000.f); // Total de frames dividos por el tiempo total (seg) en juego = (FPS) 
-		printf("FPS: %.2f\n", FPS); // Mostrar fps en consola
+		// printf("FPS: %.2f\n", FPS); // Mostrar fps en consola
 	}
 
 	freeFont(textFPS);

@@ -17,8 +17,8 @@
 
 // Estructuras de texto
 typedef struct Texto {
-	char str[100];
-	// char* str;
+	char string[100];
+	// char* string;
 	TTF_Font* font;
 	SDL_Color color;
 	SDL_Texture* texture;
@@ -48,19 +48,20 @@ void InitSDL() {
 // Funcion que inicializa objeto de la estructura Text
 Text* initFont(char *str, char *font, int size, SDL_Color color, int x, int y) {
 	Text* text = malloc(sizeof(Text));
-	// Se castea a un dato tipo "Text", ya que como estamos inicializandolo desde un puntero tenemos que usar un literal compuesto (googlea "Compound literal")
-	*text = (Text){"", 									// String del texto (Vacio por ahora)
-				TTF_OpenFont(font, size),				// Fuente (Cargada con ayuda de TTF_OpenFont("path del font", tamaño letra))
-				{color.r, color.g, color.b, color.a},	// Color del texto
-				NULL,									// Textura (NULL ya que se crea y asigna posteriormente)
-				{x, y, 0, 0}};							// Rect del texto (Posicion/Tamaño), el tamaño se asigna posteriormente al crear la textura
-	strcpy(text->str, str);								// Copiar string recibido en string de estructura
+	*text = (Text){	// Se castea a un dato tipo "Text", ya que como estamos inicializandolo desde un puntero tenemos que usar un literal compuesto (googlea "Compound literal")
+		.string		= "", 									// String del texto (vacio por ahora)
+		.font 		= TTF_OpenFont(font, size),				// Fuente (Cargada con ayuda de TTF_OpenFont("path del font", tamaño letra))
+		.color 		= color,								// Color del texto
+		.texture 	= NULL,									// Textura (NULL ya que se crea y asigna posteriormente)
+		.rect 		= {x, y, 0, 0}							// Rect del texto (Posicion/Tamaño), el tamaño se asigna posteriormente al crear la textura
+	};
+	strcpy(text->string, str);	// Copiar string recibido en string de estructura
 	return text;
 }
 
 // Funcion que carga textura de texto
 void loadFontTexture(SDL_Renderer *renderer, Text *text) {
-	SDL_Surface* textSurface = TTF_RenderText_Solid(text->font, text->str, text->color);
+	SDL_Surface* textSurface = TTF_RenderText_Solid(text->font, text->string, text->color);
 	if (textSurface == NULL) {
 		printf("Error al intentar crear textSurface: %s\n", TTF_GetError());
 	} else {
@@ -122,8 +123,8 @@ int main(int argc, char const *argv[]) {
 		}
 		// Crear string de FPS y textura
 		if (countFrames != 0) {
-			// gcvt(FPS, 4, textFPS->str + 5); // gcvt convierte un float a string y lo copia en un puntero de tipo char (aqui lo copie en la posicion 5 del string)
-			snprintf(textFPS->str + 5, 5, "%.1f", FPS);
+			// gcvt(FPS, 4, textFPS->string + 5); // gcvt convierte un float a string y lo copia en un puntero de tipo char (aqui lo copie en la posicion 5 del string)
+			snprintf(textFPS->string + 5, 5, "%.1f", FPS);
 			loadFontTexture(renderer, textFPS); // Cargar textura de string con cantidad de FPS
 		}
 
