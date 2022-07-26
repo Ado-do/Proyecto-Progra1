@@ -68,11 +68,11 @@ Leer `Pauta Proyecto Tetris.pdf` por cualquier duda :)
     - [ ] **Game Over! (Si una pieza sobrepasa el campo de juego)**
 
 - [ ] ***Implementar los 7 tetrominos***
-    - [ ] **Rotaciones**
+    - [X] **Rotaciones**
      - [ ] ["Super rotation system"](https://tetris.wiki/Super_Rotation_System)
      - [ ] ["Wall kicks"](https://tetris.wiki/Super_Rotation_System#Wall_Kicks)
     - [ ] **Mostrar la siguiente pieza en la secuencia**
-    - [ ] **Elimininar Lineas completadas**
+    - [ ] **Elimininar lineas completadas**
     - [ ] **Usar ["Random generator"](https://www.educative.io/courses/game-development-js-tetris/xlKZA7B9lLr) para crear la secuencia de piezas**
     - [ ] Preview de donde caera la pieza
 
