@@ -4,7 +4,7 @@
 <br />
 <div align="center">
   </a>
-    <img src="t.bmp" alt="Logo" width="480" height="480">
+    <img src="/assets/Portada.bmp" alt="Logo" width="495" height="263">
   </a>
 
   <h3 align="center">PROYECTO PROGRAMACIÓN I (S1 2022)</h3>
