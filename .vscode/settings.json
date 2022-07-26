@@ -1,11 +1,10 @@
 {
     "C_Cpp.default.configurationProvider": "ms-vscode.makefile-tools",
-    "C_Cpp.errorSquiggles": "Disabled",
-    "files.associations": {
-        "Tarea 3": "python",
-        "Tarea 4": "python",
-        "Tarea 5": "python",
-        "sdl_timer.h": "c",
-        "sdl_image.h": "c"
-    }
+    "makefile.launchConfigurations": [
+        {
+            "cwd": "c:\\Users\\Aibe\\Documents\\GitHub\\Proyecto-Tetris\\TestAdodo",
+            "binaryPath": "c:\\Users\\Aibe\\Documents\\GitHub\\Proyecto-Tetris\\TestAdodo\\tetris.exe",
+            "binaryArgs": []
+        }
+    ]
 }
