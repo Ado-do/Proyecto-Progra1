@@ -305,6 +305,7 @@ int main(int argc, char *argv[]) {
 
 	Text* textFPS = initFont("FPS: ", "assets/Font.ttf", 20, (SDL_Color){0, 255, 0, 255}, 10, 10);
     SDL_Texture* fondo = IMG_LoadTexture(renderer, "assets/Fondos/FondoTest.png"); // Cargar Fondo
+	if (fondo == NULL) printf("Error al crear textura fondo: %s\n", SDL_GetError());
 
 	// Variables de control de tiempo y frames
 	float FPS;
