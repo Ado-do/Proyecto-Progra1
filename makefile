@@ -12,7 +12,7 @@ CFLAGS := -ggdb3 -O0 --std=c99 -Wall
 EXEC := Tetris.exe
 
 # Library Flags
-LIBS := -lSDL2main -lSDL2 -lSDL2_image -lm -lmingw32
+LIBS := -lSDL2main -lSDL2 -lSDL2_image -lSDL2_ttf -lm -lmingw32
 # LIBS := -lSDL2main -lSDL2 -lSDL2_image -lSDL2_mixer -lSDL2_ttf -lmingw32
 
 # Distribution
@@ -74,6 +74,6 @@ $(OBJS): $(@:.o=.c) $(HDRS) $(SRCS) makefile
 
 # recipe to clean the workspace
 clean:	
-	$(RM) $(EXEC) $(OBJS)
+	$(RM) $(EXEC) *.o
 
 .PHONY: all win clean

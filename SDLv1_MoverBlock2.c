@@ -9,6 +9,8 @@
 #include <SDL2/SDL_image.h>
 // Para usar funciones basadas en tiempo como SDL_Delay()
 #include <SDL2/SDL_timer.h>
+// Para renderizar texto
+#include <SDL2/SDL_ttf.h>
 
 // Constantes
 #define SCREEN_WIDTH 870
@@ -37,17 +39,10 @@ int main(int argc, char *argv[]) {
 	// Uint32 render_flags = SDL_RENDERER_ACCELERATED;
 	SDL_Renderer* rend = SDL_CreateRenderer(win, -1, render_flags);
 
-	// SDL_Surface* bloque = IMG_Load("assets/block.webp");
-	// SDL_Texture* tex = SDL_CreateTextureFromSurface(rend, bloque);
-
     SDL_Texture* fondo = IMG_LoadTexture(rend, "assets/Fondo.png");
 	SDL_Texture* bloque = IMG_LoadTexture(rend, "assets/block.webp");
+    if (bloque == NULL || fondo == NULL) printf("Error al crear texturas: %s\n", SDL_GetError());
 
-    if (bloque == NULL || fondo == NULL) {
-        printf("Error al crear texturas: %s\n", SDL_GetError());
-    }
-
-	// SDL_FreeSurface(bloque);
 
 	SDL_Rect dest;
 	SDL_QueryTexture(bloque, NULL, NULL, &dest.w, &dest.h);

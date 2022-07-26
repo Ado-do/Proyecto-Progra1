@@ -3,90 +3,118 @@
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_timer.h>
 #include <SDL2/SDL_image.h>
+#include <SDL2/SDL_ttf.h>
 #include <stdio.h>
+#include <string.h>
 #include <stdbool.h>
 #include <time.h>
 
 // Constantes
-#define WIDTH 870
-#define HEIGHT 950
-#define TILE_SIZE 36.3
-#define INICIAL_X 9.92
-#define INICIAL_Y 6.23
-#define SCREEN_FPS 61
-#define SCREEN_TICKS_PER_FRAME 1000/SCREEN_FPS
+#define SCREEN_WIDTH 870
+#define SCREEN_HEIGHT 950
+#define TILE_SIZE 40.1
+#define BOARD_X 5.85
+#define BOARD_Y 1.84
+#define INICIAL_X 3
+#define INICIAL_Y 0
+#define SCREEN_FPS 60
+#define SCREEN_TICKS_PER_FRAME 1010/SCREEN_FPS
 
-bool running;
+// Variables globales
+SDL_Renderer* renderer = NULL;
+SDL_Window* window = NULL;
+bool running; // Flag loop game
+bool droped; // Flag de drop
 
-float FPS;
-uint64_t countFrames = 0;
-uint64_t start_time, current_time, capTimer, frame_time;
-bool droped;
+// Estructuras de texto
+typedef struct Texto {
+	char str[100];
+	TTF_Font* font;
+	SDL_Color color;
+	SDL_Texture* texture;
+	SDL_Rect rect;
+} Text;
 
 // Estructura de piezas
-typedef struct Forma {
- SDL_Color color;
- bool matrix[4][4];
- double x, y;
- int size;
- char letra;
-} shape;
+typedef struct Pieza {
+	SDL_Color color;
+	bool matrix[4][4];
+	double x, y;
+	int size;
+	char letter;
+} Shape;
 
 // Arreglo de tetrominos
-shape blocks[7] = { 
+Shape blocks[7] = { 
 	// L BLOCK
 	{{255,127,0}, // Color Naranjo
 	{{0,0,1,0} 
 	,{1,1,1,0}
 	,{0,0,0,0}
 	,{0,0,0,0}}
-	,INICIAL_X,INICIAL_Y,3,'L'}
+	,INICIAL_X + BOARD_X, INICIAL_Y + BOARD_Y, 3, 'L'}
 	// Z BLOCK
 	,{{255,0,0}, // Color Rojo
 	{{1,1,0,0}
 	,{0,1,1,0}
 	,{0,0,0,0}
 	,{0,0,0,0}
-	},INICIAL_X,INICIAL_Y,3,'Z'}
+	},INICIAL_X + BOARD_X, INICIAL_Y + BOARD_Y, 3, 'Z'}
 	// I BLOCK
 	,{{0,255,255}, // Color Celeste
 	{{1,1,1,1}
 	,{0,0,0,0}
 	,{0,0,0,0}
 	,{0,0,0,0}
-	},INICIAL_X,INICIAL_Y,4,'I'}
+	},INICIAL_X + BOARD_X, INICIAL_Y + BOARD_Y, 4, 'I'}
 	// J BLOCK
 	,{{0,0,255}, // Color Azul
 	{{1,0,0,0}
 	,{1,1,1,0}
 	,{0,0,0,0}
 	,{0,0,0,0}
-	},INICIAL_X,INICIAL_Y,3,'J'}
+	},INICIAL_X + BOARD_X, INICIAL_Y + BOARD_Y, 3, 'J'}
 	// O BLOCK
 	,{{255,255,0}, // Color Amarillo
 	{{1,1,0,0}
 	,{1,1,0,0}
 	,{0,0,0,0}
 	,{0,0,0,0}
-	},INICIAL_X,INICIAL_Y,2,'O'}
+	},INICIAL_X + BOARD_X + 1, INICIAL_Y + BOARD_Y, 2, 'O'}
 	// S BLOCK
 	,{{0,255,0}, // Color Verde
 	{{0,1,1,0}
 	,{1,1,0,0}
 	,{0,0,0,0}
 	,{0,0,0,0}
-	},INICIAL_X,INICIAL_Y,3,'S'}
+	},INICIAL_X + BOARD_X, INICIAL_Y + BOARD_Y, 3, 'S'}
 	// T BLOCK
 	,{{128,0,128}, // Color Morado
 	{{0,1,0,0}
 	,{1,1,1,0}
 	,{0,0,0,0}
 	,{0,0,0,0}
-	},INICIAL_X,INICIAL_Y,3,'T'}};
+	},INICIAL_X + BOARD_X, INICIAL_Y + BOARD_Y, 3, 'T'}};
 
-// Invierte columnas de laterales
-shape reverseCols(shape s) {
-    shape tmp = s;
+// Funcion que inicializa todo SDL
+void InitSDL() { 
+	SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "best"); // Calidad de escalado
+	if (SDL_Init(SDL_INIT_EVERYTHING) != 0) printf("Error inicializando SDL: %s\n", SDL_GetError()); // Inicializar toda la biblioteca de SDL
+	if (TTF_Init() == -1) printf("Error al inicializar SDL_TTF: %s\n", SDL_GetError()); // Inicializar SDL_TTF
+	// Crear ventana
+	window = SDL_CreateWindow("Intento de tetris", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, SCREEN_WIDTH, SCREEN_HEIGHT, 0);
+	SDL_Surface* icon = IMG_Load("assets/udec_icon.webp");
+	if (icon == NULL) printf("Error al asignar icono: %s\n", SDL_GetError());
+	SDL_SetWindowIcon(window, icon); // Poner icono a la ventana
+	SDL_FreeSurface(icon);
+	// Crear renderer
+	renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
+	SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255); // Color fondo (Negro)
+}
+
+// Funciones que seran remplazadas por "clockWise"
+Shape reverseCols(Shape s) {
+    Shape tmp = s;
     for(int i=0; i < s.size; i++) {
         for(int j=0; j < s.size/2; j++) {
             bool t = s.matrix[i][j];
@@ -96,8 +124,8 @@ shape reverseCols(shape s) {
     }
     return tmp;
 }
-shape transpose(shape* s) {
-	shape tmp = *s;
+Shape transpose(Shape* s) {
+	Shape tmp = *s;
 	for(int i = 0; i < s->size; i++) {
 		for(int j = 0; j < s->size; j++) {
 			tmp.matrix[i][j] = s->matrix[j][i];
@@ -105,8 +133,7 @@ shape transpose(shape* s) {
 	}
 	return tmp;
 }
-
-void rotation(shape* s, int clockwise) {
+void rotation(Shape* s, int clockwise) {
 	// *s = transpose(s);
 	switch (clockwise) {
 		case 1:
@@ -120,13 +147,13 @@ void rotation(shape* s, int clockwise) {
 	}
 }
 
-void counterClockwise(shape* s, bool sense) {
+// Funcion que rota piezas
+void clockWise(Shape* s, bool sense) {
 	// Transponer figura
-	shape copy = *s;
+	Shape copy = *s;
 	for(int i = 0; i < s->size; i++) {
 		for(int j = 0; j < s->size; j++) {
 			s->matrix[i][j] = copy.matrix[j][i];
-			// copy.matrix[i][j] = s->matrix[j][i];
 		}
 	}
 	copy = *s;
@@ -140,25 +167,14 @@ void counterClockwise(shape* s, bool sense) {
     }
 }
 
-void drop(shape* s) {
+// Funcion que se ejecuta cuando se dropea la pieza y esta pasa al stack (Se crea una pieza nueva)
+void drop(Shape* s) {
 	*s = blocks[rand() % 7];
-	// // Numero de pieza aleatoria
-	// int randomBlock = rand() % 7; 
-	// // Asignar color
-	// s->color = blocks[randomBlock].color;
-	// // Asignar forma
-	// for (int i = 0; i < 4; i++) {
-	// 	for (int j = 0; j < 4; j++) {
-	// 		s->matrix[i][j] = blocks[randomBlock].matrix[i][j];
-	// 	}
-	// }
-	// // Asignar tamaño
-	// s->size = blocks[randomBlock].size;
-	// // Copiar letra
-	// s->letra = blocks[randomBlock].letra;
+	droped = true;
 }
 
-void draw(shape* s, SDL_Rect* rect, SDL_Renderer* renderer) {
+// Dibujar pieza
+void draw(Shape* s, SDL_Rect* rect, SDL_Renderer* renderer) {
 	for(int i = 0; i < s->size; i++) {
 		for(int j = 0; j < s->size; j++) {
 			if(s->matrix[i][j]) {
@@ -166,14 +182,14 @@ void draw(shape* s, SDL_Rect* rect, SDL_Renderer* renderer) {
 				rect->y = (s->y + i) * TILE_SIZE;
 				SDL_SetRenderDrawColor(renderer, s->color.r, s->color.g, s->color.b, 255); // Escoger color para cuadrados
 				SDL_RenderFillRect(renderer, rect); // Pintar Cuadrados
-				// SDL_SetRenderDrawColor(renderer, 219, 219, 219, 255); // Escoger color para contorno (Gris)
-				SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255); // Escoger color para contorno (Negro)
+				SDL_SetRenderDrawColor(renderer, 219, 219, 219, 255); // Escoger color para contorno (Gris)
+				// SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255); // Escoger color para contorno (Negro)
 				SDL_RenderDrawRect(renderer, rect); // Pintar contorno
 			}
 		}
 	}
 	// IMPRIMIR MATRIZ ACTUAL DE PIEZA
-	// printf("La matriz de \"%c\" en DRAW es:\n", s->letra);
+	// printf("La matriz de \"%c\" en DRAW es:\n", s->letter);
 	// for (int i = 0; i < 4; ++i) {
 	// 	printf("| ");
 	// 	for (int j = 0; j < 4; ++j) {
@@ -183,7 +199,8 @@ void draw(shape* s, SDL_Rect* rect, SDL_Renderer* renderer) {
 	// }
 }
 
-void input(shape* cur) {
+// Funcion que recibe el input del juego
+void input(Shape* cur) {
 	// up = down = left = right = rotate = drop = 0;
 	SDL_Event e;
 	while(SDL_PollEvent(&e)) {
@@ -210,14 +227,14 @@ void input(shape* cur) {
 						break;
 					case SDLK_z:
 						// rotate = 1;
-						counterClockwise(cur, 1);
+						clockWise(cur, 1);
 						break;
 					case SDLK_x:
 						rotation(cur, 1);
 						break;
 					case SDLK_a:
-						counterClockwise(cur, 1);
-						counterClockwise(cur, 1);
+						clockWise(cur, 1);
+						clockWise(cur, 1);
 						break;
 					case SDLK_SPACE:
 						drop(cur);
@@ -232,61 +249,93 @@ void input(shape* cur) {
 	}
 }
 
-void render(SDL_Renderer* renderer, SDL_Texture* fondo) {
-	// SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
-	SDL_RenderClear(renderer);
+// Funcion que inicializa objeto de la estructura Text
+Text* initFont(char *str, char *font, int size, SDL_Color color, int x, int y) {
+	Text* text = malloc(sizeof(Text));
+	*text = (Text){"", 								// String del texto
+			TTF_OpenFont(font, size),				// Fuente (Cargada con ayuda de TTF_OpenFont("path del font", tamaño letra))
+			{color.r, color.g, color.b, color.a},	// Color del texto
+			NULL,									// Textura (NULL ya que se crea y asigna posteriormente)
+			{x, y, 0, 0}};							// Rect del texto (Posicion/Tamaño), el tamaño se asigna posteriormente al crear la textura
+	sprintf(text->str, "%s", str);
+	return text;
+}
 
-    SDL_RenderCopy(renderer, fondo, NULL, NULL);
+// Funcion que carga textura de texto
+void loadFontTexture(SDL_Renderer *renderer, Text *text) {
+	SDL_Surface* textSurface = TTF_RenderText_Solid(text->font, text->str, text->color);
+	if (textSurface == NULL) {
+		printf("Error al intentar crear textSurface: %s\n", TTF_GetError());
+	} else {
+		text->rect.w = textSurface->w;
+		text->rect.h = textSurface->h;
+	}
+	text->texture = SDL_CreateTextureFromSurface(renderer, textSurface); 
+	if (text->texture == NULL) printf("Error al intentar crear textTexture: %s\n", SDL_GetError());
+	SDL_FreeSurface(textSurface);
+}
 
+// Funcion que renderiza textura de texto
+void renderFont(SDL_Renderer *renderer, Text *text) {
+	SDL_RenderCopy(renderer, text->texture, NULL, &text->rect);
+}
+
+// Renderizar texturas de fondo
+void renderBackground(SDL_Renderer* renderer, SDL_Texture* background) {
+    SDL_RenderCopy(renderer, background, NULL, NULL);
 }
 
 int main(int argc, char *argv[]) {
+	InitSDL();
+
 	srand(time(NULL));
-
-	shape cur = blocks[4];
-	// shape cur = blocks[rand() % 7];
-
+	Shape cur = blocks[4];
+	// Shape cur = blocks[rand() % 7];
 	SDL_Rect rect;
 	rect.w = TILE_SIZE;
 	rect.h = TILE_SIZE;
 
-	SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "best");
-	if (SDL_Init(SDL_INIT_EVERYTHING) != 0) {
-		printf("Error inicializando SDL: %s\n", SDL_GetError());
-	}
+	Text* textFPS = initFont("", "assets/Font.ttf", 20, (SDL_Color){0, 255, 0, 255}, 10, 10);
+    SDL_Texture* fondo = IMG_LoadTexture(renderer, "assets/Fondos/FondoTest.png"); // Cargar Fondo
 
-	SDL_Renderer* renderer;
-	SDL_Window* window;
-	if (SDL_CreateWindowAndRenderer(WIDTH, HEIGHT, 0, &window, &renderer) != 0) {
-		printf("Error al intentar SDL_CreateWindowAndRenderer(): %s\n", SDL_GetError());
-	}	
-	SDL_SetWindowTitle(window, "Intento de Tetris");
-	SDL_Surface* icon = IMG_Load("assets/udec_icon.webp");
-	SDL_SetWindowIcon(window, icon);
-	SDL_FreeSurface(icon);
+	// Variables de control de tiempo y frames
+	float FPS;
+	uint64_t countFrames = 0; // Contador de frames
+	uint64_t start_time, current_time, capTimer, frame_time; // Tiempos
 
-    SDL_Texture* fondo = IMG_LoadTexture(renderer, "assets/Fondo.png");
-
-	running = 1;
-	start_time = SDL_GetTicks64();
+	// Iniciar gameloop
+	running = 1; // Flag de control de gameloop
+	start_time = SDL_GetTicks64(); // Tiempo en que se inicio gameloop
 	while(running) {
-		capTimer = SDL_GetTicks64();
+		capTimer = SDL_GetTicks64(); // Tiempo de inicio de frame
 
 		input(&cur);
+
+		// SoftDrop (Cada 48 frames baja 1 celda)
 		if (countFrames % 48 == 0) cur.y++;
 
-		render(renderer, fondo);
+		// Crear letra de FPS
+		if (countFrames != 0) {
+			sprintf(textFPS->str, "FPS: %.2f", FPS); // Crear string con FPS actuales
+			loadFontTexture(renderer, textFPS); // Cargar textura de string con cantidad de FPS
+		}
+
+		SDL_RenderClear(renderer);
+		/* ************* ACTUALIZAR TEXTURAS DEL FRAME ACTUAL EN EL RENDER ************* */
+		renderBackground(renderer, fondo);
+		renderFont(renderer, textFPS);
 		draw(&cur, &rect, renderer);
+		/* ***************************************************************************** */
 		SDL_RenderPresent(renderer);
-
 		++countFrames; // Contar frames
-		frame_time = SDL_GetTicks64() - capTimer; // Tiempo de creacion de frame
-		if (frame_time < SCREEN_TICKS_PER_FRAME) SDL_Delay(SCREEN_TICKS_PER_FRAME - frame_time); 
-		// Esperar si el tiempo de creacion de frame fue menor a 1000/60 ticks, de manera de que el juego vaya a 60FPS
 
+		// Control de tiempo y frames
+		frame_time = SDL_GetTicks64() - capTimer; // Tiempo de creacion de frame
+		if (frame_time < SCREEN_TICKS_PER_FRAME) SDL_Delay(SCREEN_TICKS_PER_FRAME - frame_time);  // Esperar si el tiempo de creacion de frame fue menor a 1000/60 ticks, de manera de que el juego vaya a 60FPS
+		
 		current_time = SDL_GetTicks64() - start_time; // Tiempo actual en juego
-		FPS = countFrames / (current_time / 1000.f); // Frames divididos segundos
-		printf("FPS: %.2f\n", FPS);
+		FPS = countFrames / (current_time / 1000.f); // Total de frames dividos por el tiempo total (seg) en juego = (FPS) 
+		printf("FPS: %.2f\n", FPS); // Mostrar fps en consola
 	}
 
 	SDL_DestroyRenderer(renderer);
