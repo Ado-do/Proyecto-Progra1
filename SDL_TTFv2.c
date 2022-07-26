@@ -48,14 +48,13 @@ void InitSDL() {
 // Funcion que inicializa objeto de la estructura Text
 Text* initFont(char *str, char *font, int size, SDL_Color color, int x, int y) {
 	Text* text = malloc(sizeof(Text));
-
 	// Se castea a un dato tipo "Text", ya que como estamos inicializandolo desde un puntero tenemos que usar un literal compuesto (googlea "Compound literal")
-	*text = (Text){"", 									// String del texto
+	*text = (Text){"", 									// String del texto (Vacio por ahora)
 				TTF_OpenFont(font, size),				// Fuente (Cargada con ayuda de TTF_OpenFont("path del font", tamaño letra))
 				{color.r, color.g, color.b, color.a},	// Color del texto
 				NULL,									// Textura (NULL ya que se crea y asigna posteriormente)
 				{x, y, 0, 0}};							// Rect del texto (Posicion/Tamaño), el tamaño se asigna posteriormente al crear la textura
-	strcpy(text->str, str);
+	strcpy(text->str, str);								// Copiar string recibido en string de estructura
 	return text;
 }
 
@@ -107,14 +106,14 @@ int main(int argc, char const *argv[]) {
 		while (SDL_PollEvent(&event)) {
 			// Presionar boton de cerrar
 			if (event.type == SDL_QUIT) {
-				printf("Total frames: %lld\n", countFrames);
+				printf("Total frames: %llu\n", countFrames);
 				SDL_Delay(1000);
 				running = false;
 				break;
 			} 
 			// Presionar ESCAPE
 			if (event.type == SDL_KEYDOWN && event.key.keysym.sym == SDLK_ESCAPE) {
-				printf("Total frames: %lld\n", countFrames);
+				printf("Total frames: %llu\n", countFrames);
 				SDL_Delay(1000);
 				running = false;
 				break;
@@ -123,7 +122,8 @@ int main(int argc, char const *argv[]) {
 		}
 		// Crear string de FPS y textura
 		if (countFrames != 0) {
-			gcvt(FPS, 4, textFPS->str + 5); // gcvt convierte un float a string y lo copia en un puntero de tipo char (aqui lo copie en la posicion 5 del string)
+			// gcvt(FPS, 4, textFPS->str + 5); // gcvt convierte un float a string y lo copia en un puntero de tipo char (aqui lo copie en la posicion 5 del string)
+			snprintf(textFPS->str + 5, 5, "%.1f", FPS);
 			loadFontTexture(renderer, textFPS); // Cargar textura de string con cantidad de FPS
 		}
 
