@@ -13,7 +13,7 @@
 #define SCREEN_WIDTH 870
 #define SCREEN_HEIGHT 950
 #define TILE_SIZE 40.1
-#define BOARD_X 5.85
+#define BOARD_X 5.86
 #define BOARD_Y 1.84
 #define INICIAL_X 3
 #define INICIAL_Y 0
