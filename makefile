@@ -25,7 +25,8 @@ else # Linux
 # SDL Development include file and directory
 SDL_DEVELOPMENT_INC := /usr/include/SDL2
 
-LIBS := `sdl2-config --libs --cflags` -lSDL2main -lSDL2 -lSDL2_image -lSDL2_mixer -lSDL2_ttf
+# LIBS := `sdl2-config --libs --cflags` -lSDL2main -lSDL2 -lSDL2_image -lSDL2_mixer -lSDL2_ttf
+LIBS := `sdl2-config --libs --cflags` -lSDL2main -lSDL2 -lSDL2_image -lSDL2_ttf
 
 CFLAGS := -ggdb3 -O0 --std=c99 -Wall
 

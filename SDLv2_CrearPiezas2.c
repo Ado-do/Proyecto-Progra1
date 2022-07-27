@@ -12,13 +12,13 @@
 // Constantes
 #define SCREEN_WIDTH 870
 #define SCREEN_HEIGHT 950
+#define SCREEN_FPS 60
+#define SCREEN_TICKS_PER_FRAME 1000/SCREEN_FPS
 #define TILE_SIZE 40.1
 #define BOARD_X 5.86
 #define BOARD_Y 1.84
 #define INICIAL_X 3
 #define INICIAL_Y 0
-#define SCREEN_FPS 60
-#define SCREEN_TICKS_PER_FRAME 1000/SCREEN_FPS
 
 // Variables globales
 SDL_Renderer* renderer;
@@ -290,7 +290,7 @@ void renderText(SDL_Renderer *renderer, Text *text) {
 }
 
 // Funcion que libera texto junto a su textura y fuente cargada
-void freeFont(Text *text) {
+void freeText(Text *text) {
 	SDL_DestroyTexture(text->texture);
 	TTF_CloseFont(text->font);
 	free(text);
@@ -347,14 +347,15 @@ int main(int argc, char *argv[]) {
 
 		// Control de tiempo y frames
 		frame_time = SDL_GetTicks64() - capTimer; // Tiempo de creacion de frame
-		if (frame_time < SCREEN_TICKS_PER_FRAME) SDL_Delay(SCREEN_TICKS_PER_FRAME - frame_time);  // Esperar si el tiempo de creacion de frame fue menor a 1000/60 ticks, de manera de que el juego vaya a 60FPS
-		
+		if (frame_time < SCREEN_TICKS_PER_FRAME) {
+			SDL_Delay(SCREEN_TICKS_PER_FRAME - frame_time);  // Esperar si el tiempo de creacion de frame fue menor a 1000/60 ticks, de manera de que el juego vaya a 60FPS
+		}
 		current_time = SDL_GetTicks64() - start_time; // Tiempo actual en juego
 		FPS = countFrames / (current_time / 1000.f); // Total de frames dividos por el tiempo total (seg) en juego = (FPS) 
 		// printf("FPS: %.2f\n", FPS); // Mostrar fps en consola
 	}
 
-	freeFont(textFPS);
+	freeText(textFPS);
 	SDL_DestroyRenderer(renderer);
 	SDL_DestroyWindow(window);
 	SDL_Quit();

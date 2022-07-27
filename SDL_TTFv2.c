@@ -18,7 +18,6 @@
 // Estructuras de texto
 typedef struct Texto {
 	char string[100];
-	// char* string;
 	TTF_Font* font;
 	SDL_Color color;
 	SDL_Texture* texture;
@@ -26,8 +25,8 @@ typedef struct Texto {
 } Text;
 
 // Variables globales
-SDL_Renderer* renderer = NULL;
-SDL_Window* win = NULL;
+SDL_Renderer* renderer;
+SDL_Window* win;
 
 // Funcion que inicializa todo SDL
 void InitSDL() {
