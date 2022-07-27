@@ -5,8 +5,8 @@ ifeq ($(OS),Windows_NT) # Windows
 SDL_DEVELOPMENT_INC := C:\msys64\mingw64\include\SDL2
 SDL_DEVELOPMENT_DIR := C:\msys64\mingw64\lib
 
-# CFLAGS := -ggdb3 -O0 --std=c99 -Wall
-CFLAGS := -ggdb3 -O0 -mwindows --std=c99 -Wall
+CFLAGS := -ggdb3 -O0 --std=c99 -Wall
+# CFLAGS := -ggdb3 -O0 -mwindows --std=c99 -Wall
 
 # Binary File
 EXEC := tetris.exe
