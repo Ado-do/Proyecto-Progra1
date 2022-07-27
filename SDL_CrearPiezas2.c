@@ -14,11 +14,11 @@
 #define SCREEN_HEIGHT 950
 #define SCREEN_FPS 60
 #define SCREEN_TICKS_PER_FRAME 1000/SCREEN_FPS
-#define TILE_SIZE 40.1
-#define BOARD_X 5.86
-#define BOARD_Y 1.84
+#define TILE_SIZE 38
+#define BOARD_X 6.472
+#define BOARD_Y 2.1
 #define INICIAL_X 3
-#define INICIAL_Y 0
+#define INICIAL_Y -1
 
 // Variables globales
 SDL_Renderer* renderer;
@@ -182,12 +182,12 @@ void drawPiece(const Shape* s, SDL_Rect* rect, SDL_Renderer* renderer) {
 	for(int i = 0; i < s->size; i++) {
 		for(int j = 0; j < s->size; j++) {
 			if(s->matrix[i][j]) {
-				rect->x = (s->x + j) * TILE_SIZE;
-				rect->y = (s->y + i) * TILE_SIZE;
+				rect->x = ((s->x + j) * TILE_SIZE);
+				rect->y = ((s->y + i) * TILE_SIZE);
 				SDL_SetRenderDrawColor(renderer, s->color.r, s->color.g, s->color.b, 255); // Escoger color para cuadrados
 				SDL_RenderFillRect(renderer, rect); // Pintar Cuadrados
-				SDL_SetRenderDrawColor(renderer, 219, 219, 219, 255); // Escoger color para contorno (Gris)
-				// SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255); // Escoger color para contorno (Negro)
+				// SDL_SetRenderDrawColor(renderer, 219, 219, 219, 255); // Escoger color para contorno (Gris)
+				SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255); // Escoger color para contorno (Negro)
 				SDL_RenderDrawRect(renderer, rect); // Pintar contorno
 			}
 		}
@@ -297,8 +297,9 @@ void freeText(Text *text) {
 }
 
 // Renderizar texturas de fondo
-void renderBackground(SDL_Renderer* renderer, SDL_Texture* background) {
+void renderBackground(SDL_Renderer* renderer, SDL_Texture* background, SDL_Texture* gameboard) {
 	SDL_RenderCopy(renderer, background, NULL, NULL);
+	SDL_RenderCopy(renderer, gameboard, NULL, NULL);
 }
 
 int main(int argc, char *argv[]) {
@@ -311,9 +312,10 @@ int main(int argc, char *argv[]) {
 	rect.w = TILE_SIZE;
 	rect.h = TILE_SIZE;
 
-	Text* textFPS = initText("FPS: ", "assets/Font.ttf", 20, (SDL_Color){0, 255, 0, 255}, 10, 10);
-	SDL_Texture* fondo = IMG_LoadTexture(renderer, "assets/Fondos/FondoTest.png"); // Cargar Fondo
-	if (fondo == NULL) printf("Error al crear textura fondo: %s\n", SDL_GetError());
+	Text* textFPS = initText("FPS: ", "assets/Fonts/upheaval.ttf", 20, (SDL_Color){255, 255, 255, 200}, 5, 1);
+	SDL_Texture* fondo = IMG_LoadTexture(renderer, "assets/Background/lvl1.png"); // Cargar Fondo
+	SDL_Texture* gameboard = IMG_LoadTexture(renderer, "assets/Gameboards/Gameboard.png");
+	if (fondo == NULL || gameboard == NULL) printf("Error al crear textura: %s\n", SDL_GetError());
 
 	// Iniciar gameloop
 	running = 1; // Flag de control de gameloop
@@ -338,7 +340,7 @@ int main(int argc, char *argv[]) {
 
 		SDL_RenderClear(renderer);
 		/* ************* ACTUALIZAR TEXTURAS DEL FRAME ACTUAL EN EL RENDER ************* */
-		renderBackground(renderer, fondo);
+		renderBackground(renderer, fondo, gameboard);
 		renderText(renderer, textFPS);
 		drawPiece(&cur, &rect, renderer);
 		/* ***************************************************************************** */

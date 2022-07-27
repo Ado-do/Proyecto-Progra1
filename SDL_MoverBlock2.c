@@ -15,8 +15,8 @@
 // Constantes
 #define SCREEN_WIDTH 870
 #define SCREEN_HEIGHT 950
-#define BLOCK_LEN 73
-#define BLOCK_MV 36
+#define BLOCK_LEN 81
+#define BLOCK_MV 38
 #define DROP_TIMING 48
 const int SCREEN_FPS = 62;
 const int SCREEN_TICKS_PER_FRAME = 1000 / SCREEN_FPS;
@@ -39,7 +39,8 @@ int main(int argc, char *argv[]) {
 	// Uint32 render_flags = SDL_RENDERER_ACCELERATED;
 	SDL_Renderer* rend = SDL_CreateRenderer(win, -1, render_flags);
 
-    SDL_Texture* fondo = IMG_LoadTexture(rend, "assets/Fondo.png");
+	SDL_Texture* fondo = IMG_LoadTexture(rend, "assets/Fondos/lvl1.png"); // Cargar Fondo
+	SDL_Texture* gameboard = IMG_LoadTexture(rend, "assets/Gameboard.png");
 	SDL_Texture* bloque = IMG_LoadTexture(rend, "assets/block.webp");
     if (bloque == NULL || fondo == NULL) printf("Error al crear texturas: %s\n", SDL_GetError());
 
@@ -48,18 +49,18 @@ int main(int argc, char *argv[]) {
 	SDL_QueryTexture(bloque, NULL, NULL, &dest.w, &dest.h);
 
 	// Tamaño de cada 4 casillas
-	dest.w = BLOCK_LEN + 6;
+	dest.w = BLOCK_LEN;
 	dest.h = BLOCK_LEN;
 	printf("dest.w inicial: %d\n", dest.w);
 	printf("dest.h inicial: %d\n", dest.h);
 
 	// Asignar posicion x inicial del objeto
 	// dest.x = (SCREEN_WIDTH - dest.w) / 2;
-	dest.x = 393;
+	dest.x = 395;
 
 	// Asignar posicion y inicial del objeto
 	// dest.y = (SCREEN_HEIGHT - dest.h) / 2;
-	dest.y = 189;
+	dest.y = 191;
 
 	// Controlar loop game
 	bool close = 0;
@@ -78,7 +79,7 @@ int main(int argc, char *argv[]) {
 			switch (event.type) {
 				case SDL_QUIT:
 					// Manejo del boton de cerrar
-					printf("Total frames: %d\n", countFrames);
+					printf("Total frames: %lld\n", countFrames);
 					SDL_Delay(2000);
 					close = 1;
 					break;
@@ -102,7 +103,7 @@ int main(int argc, char *argv[]) {
 							break;
 						case SDL_SCANCODE_LEFT:
 							// softdrop = 0;
-							dest.x -= BLOCK_MV + 2;
+							dest.x -= BLOCK_MV;
 							// printf("x: %d, y: %d\n", dest.x, dest.y);
 							break;
 						case SDL_SCANCODE_S:
@@ -122,13 +123,13 @@ int main(int argc, char *argv[]) {
 							break;
 						case SDL_SCANCODE_RIGHT:
 							// softdrop = 0;
-							dest.x += BLOCK_MV + 2;
+							dest.x += BLOCK_MV;
 							// printf("x: %d, y: %d\n", dest.x, dest.y);
 							break;
 						case SDL_SCANCODE_ESCAPE:
 							// softdrop = 0;
 							close = 1;
-							printf("Total frames: %d\n", countFrames);
+							printf("Total frames: %lld\n", countFrames);
 							SDL_Delay(2000);
 							break;
 						default:
@@ -142,28 +143,29 @@ int main(int argc, char *argv[]) {
 		if (countFrames % 48 == 0) dest.y += BLOCK_MV;
 
 		// Perimetro derecho
-		if (dest.x > 544) {
-			dest.x = 544;
+		if (dest.x > 547) {
+			dest.x = 547;
 			printf("BLOCKEAO. dest.x: %d\n", dest.x);
 		}
 		// Perimetro izquierdo
-		if (dest.x < 240) {
-			dest.x = 240;
+		if (dest.x < 243) {
+			dest.x = 243;
 			printf("BLOCKEAO. dest.x: %d\n", dest.x);
 		}
 		// Perimetro inferior
-		if (dest.y > 689) {
-			dest.y = 689;
+		if (dest.y > 799) {
+			dest.y = 799;
 			printf("BLOCKEAO. dest.y: %d\n", dest.y);
 		}
 		// Perimetro superior
-		if (dest.y < 189) {
-			dest.y = 189;
-			printf("BLOCKEAO. dest.y: %d\n", dest.y);
-		}
+		// if (dest.y < 189) {
+			// dest.y = 189;
+			// printf("BLOCKEAO. dest.y: %d\n", dest.y);
+		// }
 		// Limpiar pantalla
 		SDL_RenderClear(rend);
 		SDL_RenderCopy(rend, fondo, NULL, NULL);
+		SDL_RenderCopy(rend, gameboard, NULL, NULL);
 		SDL_RenderCopy(rend, bloque, NULL, &dest);
 
 		// Provoca de el "double buffers", para renderizado multiple

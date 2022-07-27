@@ -9,7 +9,7 @@ SDL_DEVELOPMENT_DIR := C:\msys64\mingw64\lib
 CFLAGS := -ggdb3 -O0 -mwindows --std=c99 -Wall
 
 # Binary File
-EXEC := Tetris.exe
+EXEC := tetris.exe
 
 # Library Flags
 LIBS := -lSDL2main -lSDL2 -lSDL2_image -lSDL2_ttf -lm -lmingw32
@@ -31,7 +31,7 @@ LIBS := `sdl2-config --libs --cflags` -lSDL2main -lSDL2 -lSDL2_image -lSDL2_ttf
 CFLAGS := -ggdb3 -O0 --std=c99 -Wall
 
 # Binary File
-EXEC := Tetris
+EXEC := tetris
 
 # Distribution
 DIST_NAME := SDL2-tetris-linux
@@ -48,7 +48,7 @@ CC := gcc
 HDRS :=
 
 # add source files here
-SRCS := SDLv2_CrearPiezas2.c
+SRCS := SDL_CrearPiezas2.c
 
 # generate names of object files
 OBJS := $(SRCS:.c=.o)

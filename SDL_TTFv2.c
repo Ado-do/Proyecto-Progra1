@@ -60,16 +60,21 @@ Text* initFont(char *str, char *font, int size, SDL_Color color, int x, int y) {
 
 // Funcion que carga textura de texto
 void loadFontTexture(SDL_Renderer *renderer, Text *text) {
-	SDL_Surface* textSurface = TTF_RenderText_Solid(text->font, text->string, text->color);
+	SDL_Surface* textSurface = TTF_RenderText_Solid(text->font, text->string, text->color);	// Crear surface del texto
 	if (textSurface == NULL) {
 		printf("Error al intentar crear textSurface: %s\n", TTF_GetError());
 	} else {
-		text->rect.w = textSurface->w;
-		text->rect.h = textSurface->h;
+		text->rect.w = textSurface->w; // Copiar ancho del texto
+		text->rect.h = textSurface->h; // Copiar alto del texto
 	}
-	text->texture = SDL_CreateTextureFromSurface(renderer, textSurface); 
+	text->texture = SDL_CreateTextureFromSurface(renderer, textSurface);
 	if (text->texture == NULL) printf("Error al intentar crear textTexture: %s\n", SDL_GetError());
 	SDL_FreeSurface(textSurface);
+}
+
+// Funcion que renderiza textura de texto
+void renderFont(SDL_Renderer *renderer, Text *text) {
+	SDL_RenderCopy(renderer, text->texture, NULL, &text->rect);
 }
 
 // Funcion que libera texto junto a su textura y fuente cargada
@@ -79,16 +84,11 @@ void freeFont(Text *text) {
 	free(text);
 }
 
-// Funcion que renderiza textura de texto
-void renderFont(SDL_Renderer *renderer, Text *text) {
-	SDL_RenderCopy(renderer, text->texture, NULL, &text->rect);
-}
-
 int main(int argc, char const *argv[]) {
 	
 	InitSDL();
 	// Arriba estan los parametros de initFont
-	Text* textFPS = initFont("FPS: ", "assets/Font.ttf", 20, (SDL_Color){0, 255, 0, 255}, 10, 10); // Uso de un "Compound literal"
+	Text* textFPS = initFont("FPS: ", "assets/Font.ttf", 60, (SDL_Color){0, 255, 0, 255}, 10, 10); // Uso de un "Compound literal"
 
 	// Frames y time
 	float FPS;
@@ -110,7 +110,7 @@ int main(int argc, char const *argv[]) {
 				SDL_Delay(1000);
 				running = false;
 				break;
-			} 
+			}
 			// Presionar ESCAPE
 			if (event.type == SDL_KEYDOWN && event.key.keysym.sym == SDLK_ESCAPE) {
 				printf("Total frames: %llu\n", countFrames);
@@ -121,11 +121,9 @@ int main(int argc, char const *argv[]) {
 			if (!running) break;
 		}
 		// Crear string de FPS y textura
-		if (countFrames != 0) {
-			// gcvt(FPS, 4, textFPS->string + 5); // gcvt convierte un float a string y lo copia en un puntero de tipo char (aqui lo copie en la posicion 5 del string)
-			snprintf(textFPS->string + 5, 5, "%.1f", FPS);
-			loadFontTexture(renderer, textFPS); // Cargar textura de string con cantidad de FPS
-		}
+		// gcvt(FPS, 4, textFPS->string + 5); // gcvt convierte un float a string y lo copia en un puntero de tipo char (aqui lo copie en la posicion 5 del string)
+		snprintf(textFPS->string + 5, 5, "%.1f", FPS);
+		loadFontTexture(renderer, textFPS); // Cargar textura de string con cantidad de FPS
 
 		SDL_RenderClear(renderer); // Limpiar pantalla del frame anterior
 		/* ************* ACTUALIZAR TEXTURAS DEL FRAME ACTUAL EN EL RENDER ************* */
