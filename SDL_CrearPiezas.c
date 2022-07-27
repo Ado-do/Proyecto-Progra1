@@ -262,7 +262,7 @@ int main(int argc, char *argv[]) {
 		printf("Error al intentar SDL_CreateWindowAndRenderer(): %s\n", SDL_GetError());
 	}	
 	SDL_SetWindowTitle(window, "Intento de Tetris");
-	SDL_Surface* icon = IMG_Load("udec_icon.webp");
+	SDL_Surface* icon = IMG_Load("assets/udec_icon.webp");
 	SDL_SetWindowIcon(window, icon);
 	SDL_FreeSurface(icon);
 

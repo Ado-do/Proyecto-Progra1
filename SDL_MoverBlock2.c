@@ -39,8 +39,8 @@ int main(int argc, char *argv[]) {
 	// Uint32 render_flags = SDL_RENDERER_ACCELERATED;
 	SDL_Renderer* rend = SDL_CreateRenderer(win, -1, render_flags);
 
-	SDL_Texture* fondo = IMG_LoadTexture(rend, "assets/Fondos/lvl1.png"); // Cargar Fondo
-	SDL_Texture* gameboard = IMG_LoadTexture(rend, "assets/Gameboard.png");
+	SDL_Texture* fondo = IMG_LoadTexture(rend, "assets/backgrounds/lvl1.png"); // Cargar Fondo
+	SDL_Texture* gameboard = IMG_LoadTexture(rend, "assets/gameboards/gameboard1.png");
 	SDL_Texture* bloque = IMG_LoadTexture(rend, "assets/block.webp");
     if (bloque == NULL || fondo == NULL) printf("Error al crear texturas: %s\n", SDL_GetError());
 
