@@ -45,10 +45,10 @@ endif
 CC := gcc
 
 # add header files here
-HDRS :=
+HDRS := *.h
 
 # add source files here
-SRCS := SDL_CrearPiezas2.c
+SRCS := SDL_Gameboard.c
 
 # generate names of object files
 OBJS := $(SRCS:.c=.o)
