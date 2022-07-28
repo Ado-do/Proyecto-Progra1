@@ -122,10 +122,12 @@ float FPS;
 uint64_t countFrames = 0; // Contador de frames
 double start_time, currrent_time, capTimer, frame_time; // Tiempos
 
+int i = 0;
+
 // Funcion que inicializa todo SDL
 void InitSDL() { 
 	SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "best"); // Calidad de escalado
-	if (SDL_Init(SDL_INIT_EVERYTHING) != 0) printf("Error inicializando SDL: %s\n", SDL_GetError()); // Inicializar toda la biblioteca de SDL
+	if (SDL_Init(SDL_INIT_EVERYTHING) < 0) printf("Error inicializando SDL: %s\n", SDL_GetError()); // Inicializar toda la biblioteca de SDL
 	if (TTF_Init() == -1) printf("Error al inicializar SDL_TTF: %s\n", SDL_GetError()); // Inicializar SDL_TTF
 	if (IMG_Init(IMG_INIT_PNG) != IMG_INIT_PNG) printf("Error inicializando SDL_Image: %s\n", SDL_GetError()); // Inicializar SDL_image
 	// Crear ventana
@@ -206,8 +208,7 @@ void input(Shape* curr, Shape* next) {
 		if(e.type == SDL_QUIT) {
 			running = false;
 			break;
-		} 
-		// if (e.type == SDL_KEYDOWN && e.key.repeat == 0) {
+		}
 		if (e.type == SDL_KEYDOWN) {
 			switch (e.key.keysym.sym) {
 				case SDLK_UP:
@@ -271,25 +272,20 @@ Text* initText(const char *str, const char *font, const int size, const SDL_Colo
 }
 
 void loadBlocksTexture() {
-	int i = 0;
 	blocks[0].texture = IMG_LoadTexture(renderer, "assets/blocks/L.png");
-	printf("Error en textura %d: %s\n", i++, IMG_GetError());
 	blocks[1].texture = IMG_LoadTexture(renderer, "assets/blocks/Z.png");
-	printf("Error en textura %d: %s\n", i++, IMG_GetError());
 	blocks[2].texture = IMG_LoadTexture(renderer, "assets/blocks/I.png");
-	printf("Error en textura %d: %s\n", i++, IMG_GetError());
 	blocks[3].texture = IMG_LoadTexture(renderer, "assets/blocks/J.png");
-	printf("Error en textura %d: %s\n", i++, IMG_GetError());
 	blocks[4].texture = IMG_LoadTexture(renderer, "assets/blocks/O.png");
-	printf("Error en textura %d: %s\n", i++, IMG_GetError());
 	blocks[5].texture = IMG_LoadTexture(renderer, "assets/blocks/S.png");
-	printf("Error en textura %d: %s\n", i++, IMG_GetError());
 	blocks[6].texture = IMG_LoadTexture(renderer, "assets/blocks/T.png");
-	printf("Error en textura %d: %s\n", i++, IMG_GetError());
 }
 
 // Funcion que carga textura de texto
 void loadTextTexture(SDL_Renderer *renderer, Text *text) {
+
+	if (i++ == 0) printf("ERROR FLAG SDL: %s\n", SDL_GetError());
+
 	SDL_Surface* textSurface = TTF_RenderText_Solid(text->font, text->string, text->color);
 	if (textSurface == NULL) {
 		printf("Error al intentar crear textSurface: %s\n", TTF_GetError());
@@ -297,7 +293,7 @@ void loadTextTexture(SDL_Renderer *renderer, Text *text) {
 		text->rect.w = textSurface->w;
 		text->rect.h = textSurface->h;
 	}
-	text->texture = SDL_CreateTextureFromSurface(renderer, textSurface); 
+	text->texture = SDL_CreateTextureFromSurface(renderer, textSurface);
 	if (text->texture == NULL) printf("Error al intentar crear textTexture: %s\n", SDL_GetError());
 	SDL_FreeSurface(textSurface);
 }
@@ -368,7 +364,7 @@ int main(int argc, char *argv[]) {
 		} else if (droped > 0) {
 			droped--;
 		}
-
+		
 		// Crear string de FPS y textura
 		if (countFrames > 0) {
 			snprintf(textFPS->string + 5, 5, "%.1f", FPS);
@@ -394,10 +390,10 @@ int main(int argc, char *argv[]) {
 		FPS = countFrames / (currrent_time / 1000.f); // Total de frames dividos por el tiempo total (seg) en juego = (FPS) 
 	}
 
-	// printf("Si es que hubo un error de SDL: %s\n", SDL_GetError());
-	// printf("Si es que hubo un error de SDL_image: %s\n", IMG_GetError());
-	// printf("Si es que hubo un error de SDL_TTF: %s\n", TTF_GetError());
-	// SDL_Delay(5000);
+	printf("Si es que hubo un error de SDL: %s\n", SDL_GetError());
+	printf("Si es que hubo un error de SDL_image: %s\n", IMG_GetError());
+	printf("Si es que hubo un error de SDL_TTF: %s\n", TTF_GetError());
+	SDL_Delay(5000);
 
 	freeText(textFPS);
 	TTF_Quit();
