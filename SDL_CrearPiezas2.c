@@ -283,9 +283,7 @@ void loadBlocksTexture() {
 
 // Funcion que carga textura de texto
 void loadTextTexture(SDL_Renderer *renderer, Text *text) {
-
-	if (i++ == 0) printf("ERROR FLAG SDL: %s\n", SDL_GetError());
-
+	if (text->texture != NULL) SDL_DestroyTexture(text->texture);
 	SDL_Surface* textSurface = TTF_RenderText_Solid(text->font, text->string, text->color);
 	if (textSurface == NULL) {
 		printf("Error al intentar crear textSurface: %s\n", TTF_GetError());
@@ -300,7 +298,7 @@ void loadTextTexture(SDL_Renderer *renderer, Text *text) {
 
 // Funcion que renderiza textura de texto
 void renderText(SDL_Renderer *renderer, Text *text) {
-	SDL_RenderCopy(renderer, text->texture, NULL, &text->rect);
+	if (SDL_RenderCopy(renderer, text->texture, NULL, &text->rect) < 0) printf("ERROR RENDERIZANDO TEXTO: %s\n", SDL_GetError());
 }
 
 // Funcion que libera texto junto a su textura y fuente cargada
@@ -364,18 +362,16 @@ int main(int argc, char *argv[]) {
 		} else if (droped > 0) {
 			droped--;
 		}
-		
-		// Crear string de FPS y textura
-		if (countFrames > 0) {
-			snprintf(textFPS->string + 5, 5, "%.1f", FPS);
-			loadTextTexture(renderer, textFPS); // Cargar textura de string con cantidad de FPS
-		}
 
 		// Armar y mostrar Frame
 		SDL_RenderClear(renderer);
 
 		renderBackground(renderer, fondo, gameboard, &next);
-		renderText(renderer, textFPS);
+		if (countFrames > 0) {
+			snprintf(textFPS->string + 5, 5, "%.1f", FPS);
+			loadTextTexture(renderer, textFPS); // Cargar textura de string con cantidad de FPS
+			renderText(renderer, textFPS);
+		}
 		renderPiece(&curr, renderer);
         
 		SDL_RenderPresent(renderer);
@@ -389,11 +385,6 @@ int main(int argc, char *argv[]) {
 		currrent_time = SDL_GetTicks64() - start_time; // Tiempo actual en juego
 		FPS = countFrames / (currrent_time / 1000.f); // Total de frames dividos por el tiempo total (seg) en juego = (FPS) 
 	}
-
-	printf("Si es que hubo un error de SDL: %s\n", SDL_GetError());
-	printf("Si es que hubo un error de SDL_image: %s\n", IMG_GetError());
-	printf("Si es que hubo un error de SDL_TTF: %s\n", TTF_GetError());
-	SDL_Delay(5000);
 
 	freeText(textFPS);
 	TTF_Quit();
