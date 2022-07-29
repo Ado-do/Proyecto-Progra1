@@ -88,7 +88,7 @@ int main(int argc, char const *argv[]) {
 	
 	InitSDL();
 	// Arriba estan los parametros de initFont
-	Text* textFPS = initFont("FPS: ", "assets/Font.ttf", 60, (SDL_Color){0, 255, 0, 255}, 10, 10); // Uso de un "Compound literal"
+	Text* textFPS = initFont("FPS: ", "assets/fonts/upheaval.ttf", 20, (SDL_Color){0, 255, 0, 255}, 10, 10); // Uso de un "Compound literal"
 
 	// Frames y time
 	float FPS;
@@ -140,7 +140,7 @@ int main(int argc, char const *argv[]) {
 		FPS = countFrames / (current_time / 1000.f); // Total de frames dividos por el tiempo total (seg) en juego = (FPS) 
 		printf("FPS: %.2f\n", FPS); // Mostrar fps en consola
 	}
-	
+
 	freeFont(textFPS);
 	SDL_DestroyRenderer(renderer);
 	SDL_DestroyWindow(win);

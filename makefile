@@ -66,17 +66,11 @@ $(EXEC): $(OBJS) $(HDRS) $(SRCS) makefile
 	$(CC) $(CFLAGS) -o $@ $(OBJS) $(LIBS)
 
 # recipe for building object files
-$(OBJS): $(@:.o=.c) $(HDRS) $(SRCS) makefile	
+$(OBJS): $(@:.o=.c) $(SRCS) makefile	
 	$(CC) -o $@ $(@:.o=.c) -c $(CFLAGS)
-
-# showfont: showfont.c makefile	
-# 	$(CC) -o $@ $@.c $(CFLAGS) $(LIBS)
-
-# glfont: glfont.c makefile	
-# 	$(CC) -o $@ $@.c $(CFLAGS) $(LIBS)
 
 # recipe to clean the workspace
 clean:	
 	$(RM) $(EXEC) *.o
 
-.PHONY: all win clean
+.PHONY: all clean

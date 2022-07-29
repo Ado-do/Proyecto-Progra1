@@ -1,15 +1,16 @@
 #define SDL_MAIN_HANDLED
+
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_timer.h>
 #include <SDL2/SDL_image.h>
 #include <SDL2/SDL_ttf.h>
 #include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
 #include <stdbool.h>
-#include <stdio.h>
-#include <SDL2/SDL.h>
 #include <time.h>
+
+enum sense {COUNTER_CLOCKWISE, CLOCKWISE};
+
 // Constantes
 #define SCREEN_WIDTH 870
 #define SCREEN_HEIGHT 950
@@ -20,7 +21,6 @@
 #define BOARD_Y 2.1
 #define INICIAL_X 3
 #define INICIAL_Y -1
-enum sense {COUNTER_CLOCKWISE, CLOCKWISE};
 
 // Estructuras de texto
 typedef struct Texto {
@@ -30,6 +30,12 @@ typedef struct Texto {
 	SDL_Texture* texture;
 	SDL_Rect rect;
 } Text;
+
+// Estructura titulo
+typedef struct {
+	SDL_Texture* texture;
+	SDL_Rect rect;
+} Texture;
 
 // Estructura de piezas
 typedef struct Pieza {
@@ -42,8 +48,8 @@ typedef struct Pieza {
 	SDL_Rect rect;
 } Shape;
 
-// Arreglo de tetrominos
-Shape blocks[7] = {
+// Arreglos de estructuras
+Shape blocks[7] = { 
 	// L BLOCK
 	{{255,127,0}, // Color Naranjo
 	{{0,0,1,0} 
@@ -108,13 +114,11 @@ Shape blocks[7] = {
 	,INICIAL_Y + BOARD_Y
 	, 3, 'T', NULL}
 };
+Texture titles[4];
+Texture buttons[3][3];
 
-SDL_Texture* tex;
+// Variables globales
 SDL_Renderer* renderer;
-SDL_Texture* boton1;
-SDL_Texture* boton2;
-SDL_Texture* boton3;
-SDL_Window* win;
 SDL_Window* window;
 SDL_Texture* fondo;
 SDL_Texture* gameboard;
@@ -123,60 +127,63 @@ bool running; // Flag loop game
 int droped; // Flag de drop
 // Variables de control de tiempo y frames
 float FPS;
-uint64_t countFrames = 0; // Contador de frames
-double start_time, currrent_time, capTimer, frame_time; // Tiempos
+Uint64 countFrames = 0; // Contador de frames
+Uint64 start_time, current_time, capTimer, frame_time; // Tiempos
 
-int i = 0;
-
-void InitSDL() {
-	SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "best"); // Calidad de escalado
-	if (SDL_Init(SDL_INIT_EVERYTHING) != 0) printf("Error inicializando SDL: %s\n", SDL_GetError()); // Inicializar toda la biblioteca de SDL
-	if (TTF_Init() == -1) printf("Error al inicializar SDL_TTF: %s\n", SDL_GetError()); // Inicializar SDL_TTF
+// Funcion que inicializa todo SDL y demas librerias usadas
+bool InitSDL() { 
+	// Inicializar toda la biblioteca de SDL
+	if (SDL_Init(SDL_INIT_EVERYTHING) < 0) {
+		printf("Error initializing SDL2: %s\n", SDL_GetError());
+		return 0;
+	}
+	// Inicializar SDL_TTF
+	if (TTF_Init() == -1) {
+		printf("Error initializing SDL_TTF: %s\n", SDL_GetError());
+		return 0;
+	}
+	// Inicializar SDL_image
+	if (IMG_Init(IMG_INIT_PNG) != IMG_INIT_PNG) {
+		printf("Error initializing SDL_Image: %s\n", SDL_GetError());
+		return 0;
+	}
+	// Calidad de escalado
+	if (SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "best") == SDL_FALSE) {
+		printf("Error assigning scaling hint: %s\n", SDL_GetError());
+	}
 	// Crear ventana
-	win = SDL_CreateWindow("Intento de tetris", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, SCREEN_WIDTH, SCREEN_HEIGHT, 0);
+	window = SDL_CreateWindow("Intento de tetris", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, SCREEN_WIDTH, SCREEN_HEIGHT, 0);
+	if (window == NULL) {
+		printf("Error creating window: %s\n", SDL_GetError());
+		return 0;
+	}
 	SDL_Surface* icon = IMG_Load("assets/udec_icon.webp");
-	if (icon == NULL) printf("Error al asignar icono: %s\n", SDL_GetError());
-	SDL_SetWindowIcon(win, icon); // Poner icono a la ventana
+	if (icon == NULL) {
+		printf("Error assigning window icon: %s\n", IMG_GetError());
+	}
+	SDL_SetWindowIcon(window, icon); // Poner icono a la ventana
 	SDL_FreeSurface(icon);
 	// Crear renderer
-	renderer = SDL_CreateRenderer(win, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
-	SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255); // Color fondo (Negro)
-}
-// Funcion que inicializa objeto de la estructura Text
-Text* initFont(char *str, char *font, int size, SDL_Color color, int x, int y) {
-	Text* text = malloc(sizeof(Text));
-	*text = (Text){	// Se castea a un dato tipo "Text", ya que como estamos inicializandolo desde un puntero tenemos que usar un literal compuesto (googlea "Compound literal")
-		.string		= "", 									// String del texto (vacio por ahora)
-		.font 		= TTF_OpenFont(font, size),				// Fuente (Cargada con ayuda de TTF_OpenFont("path del font", tamaño letra))
-		.color 		= color,								// Color del texto
-		.texture 	= NULL,									// Textura (NULL ya que se crea y asigna posteriormente)
-		.rect 		= {x, y, 0, 0}							// Rect del texto (Posicion/Tamaño), el tamaño se asigna posteriormente al crear la textura
-	};
-	strcpy(text->string, str);	// Copiar string recibido en string de estructura
-	return text;
-}
-void loadFontTexture(SDL_Renderer *renderer, Text *text) {
-	SDL_Surface* textSurface = TTF_RenderText_Solid(text->font, text->string, text->color);
-	if (textSurface == NULL) {
-		printf("Error al intentar crear textSurface: %s\n", TTF_GetError());
-	} else {
-		text->rect.w = textSurface->w;
-		text->rect.h = textSurface->h;
+	renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
+	if (renderer == NULL) {
+		printf("Error creating renderer: %s\n", SDL_GetError());
+		return 0;
 	}
-	text->texture = SDL_CreateTextureFromSurface(renderer, textSurface); 
-	if (text->texture == NULL) printf("Error al intentar crear textTexture: %s\n", SDL_GetError());
-	SDL_FreeSurface(textSurface);
-}
-void freeFont(Text *text) {
-	SDL_DestroyTexture(text->texture);
-	TTF_CloseFont(text->font);
-	free(text);
+	SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255); // Color fondo (Negro)
+
+	return 1;
 }
 
-// Funcion que renderiza textura de texto
-void renderFont(SDL_Renderer *renderer, Text *text) {
-	SDL_RenderCopy(renderer, text->texture, NULL, &text->rect);
+// Funcion que apaga y limpia todos los subsystemas de SDL usados.
+void QuitSDL () {
+	TTF_Quit();
+	IMG_Quit();
+	SDL_DestroyRenderer(renderer);
+	SDL_DestroyWindow(window);
+	SDL_Quit();
 }
+
+// Funcion que rota piezas
 void rotation(Shape* s, const int sense) {
 	Shape copy = *s;
 	switch (sense) {
@@ -216,9 +223,8 @@ void rotation(Shape* s, const int sense) {
 }
 
 // Funcion que se ejecuta cuando se dropea la pieza y esta pasa al stack (Se crea una pieza nueva)
-void drop(Shape *curr, Shape *next) {
-	*curr = *next;
-	*next = blocks[rand()%7];
+void drop(Shape *curr) {
+	*curr = blocks[rand()%7];
 	droped = 60;
 }
 
@@ -237,7 +243,7 @@ void renderPiece(Shape *s, SDL_Renderer *renderer) {
 }
 
 // Funcion que recibe el input del juego
-void input(Shape* curr, Shape* next) {
+void input(Shape* curr) {
 	SDL_Event e;
 	while(SDL_PollEvent(&e)) {
 		if(e.type == SDL_QUIT) {
@@ -279,11 +285,30 @@ void input(Shape* curr, Shape* next) {
 					break;
 				case SDLK_SPACE:
 					if (!e.key.repeat) {
-						drop(curr, next);
+						drop(curr);
 					}
 					break;
 				case SDLK_ESCAPE:
-					
+					running = false;
+					break;
+				default:
+					break;
+			}
+		}
+	}
+}
+
+void menuInput () {
+	SDL_Event e;
+	while(SDL_PollEvent(&e)) {
+		if(e.type == SDL_QUIT) {
+			running = false;
+			break;
+		}
+		if (e.type == SDL_KEYDOWN) {
+			switch (e.key.keysym.sym) {
+				case SDLK_ESCAPE:
+					running = false;
 					break;
 				default:
 					break;
@@ -307,13 +332,30 @@ Text* initText(const char *str, const char *font, const int size, const SDL_Colo
 }
 
 void loadBlocksTexture() {
-	blocks[0].texture = IMG_LoadTexture(renderer, "L.png");
-	blocks[1].texture = IMG_LoadTexture(renderer, "Z.png");
-	blocks[2].texture = IMG_LoadTexture(renderer, "I.png");
-	blocks[3].texture = IMG_LoadTexture(renderer, "J.png");
-	blocks[4].texture = IMG_LoadTexture(renderer, "O.png");
-	blocks[5].texture = IMG_LoadTexture(renderer, "S.png");
-	blocks[6].texture = IMG_LoadTexture(renderer, "T.png");
+	blocks[0].texture = IMG_LoadTexture(renderer, "assets/blocks/L.png");
+	blocks[1].texture = IMG_LoadTexture(renderer, "assets/blocks/Z.png");
+	blocks[2].texture = IMG_LoadTexture(renderer, "assets/blocks/I.png");
+	blocks[3].texture = IMG_LoadTexture(renderer, "assets/blocks/J.png");
+	blocks[4].texture = IMG_LoadTexture(renderer, "assets/blocks/O.png");
+	blocks[5].texture = IMG_LoadTexture(renderer, "assets/blocks/S.png");
+	blocks[6].texture = IMG_LoadTexture(renderer, "assets/blocks/T.png");
+}
+
+void loadTittleTexture() {
+	titles[0].texture = IMG_LoadTexture(renderer, "assets/backgrounds/menu/titles/title1_1.png");
+	titles[1].texture = IMG_LoadTexture(renderer, "assets/backgrounds/menu/titles/title1_2.png");
+	titles[2].texture = IMG_LoadTexture(renderer, "assets/backgrounds/menu/titles/title2_1.png");
+	titles[3].texture = IMG_LoadTexture(renderer, "assets/backgrounds/menu/titles/title2_2.png");
+	int titles_width, titles_height;
+	SDL_QueryTexture(titles[0].texture, NULL, NULL, &titles_width, &titles_height);
+	for (int i = 0; i < 4; i++) {
+		titles[i].rect = (SDL_Rect) {
+			.w = titles_width * 1.5,
+			.h = titles_height * 1.5,
+			.x = SCREEN_WIDTH / 2 - titles_width + 60,
+			.y = SCREEN_HEIGHT / 2 - 300
+		};
+	}
 }
 
 // Funcion que carga textura de texto
@@ -344,111 +386,65 @@ void freeText(Text *text) {
 }
 
 // Renderizar texturas de fondo
-void renderBackground(SDL_Renderer *renderer, SDL_Texture *background, SDL_Texture *gameboard, Shape *next) {
+void renderBackground(SDL_Renderer *renderer, SDL_Texture *background) {
 	SDL_RenderCopy(renderer, background, NULL, NULL);
-	SDL_RenderCopy(renderer, gameboard, NULL, NULL);
-	next->rect.w = next->rect.h = TILE_SIZE;
-	for(int i = 0; i < next->size; i++) {
-		for(int j = 0; j < next->size; j++) {
-			if(next->matrix[i][j]) {
-				switch (next->letter) {
-					case 'O':
-						next->rect.x = ((18 + j) * TILE_SIZE);
-						break;
-					case 'I':
-						next->rect.x = ((17 + j) * TILE_SIZE);
-						break;
-					default:
-						next->rect.x = ((17.5 + j) * TILE_SIZE);
-						break;
-				}
-				next->rect.y = ((5 + i) * TILE_SIZE);
-				SDL_RenderCopy(renderer, next->texture, NULL, &next->rect);
-			}
-		}
-	}
-	// printf("Error renderizando pieza: %s\n", SDL_GetError());
 }
 
-int main(int argc, char const *argv[])
-{
+int main(int argc, char *argv[]) {
+	srand(time(NULL));
 	InitSDL();
-	bool running = true;
-	SDL_Event event;
-	int eleccion=0;
-	fondo= IMG_LoadTexture(renderer, "StartMenu.png");
-	boton2= IMG_LoadTexture(renderer, "boton2.png");
 
-	while(running){
+	loadBlocksTexture();
+	Text* textFPS = initText("FPS: ", "assets/fonts/upheaval.ttf", 20, (SDL_Color){255, 255, 255, 200}, 5, 1);
+	fondo = IMG_LoadTexture(renderer, "assets/backgrounds/menu/StartMenu.png"); // Cargar Fondo
+	loadTittleTexture();
 
-		while (SDL_PollEvent(&event)) {
+	// Shape curr = blocks[rand() % 7];
 
-			if(event.key.keysym.scancode == SDL_SCANCODE_DOWN && eleccion <3)
-			{
-				eleccion++;
-				printf("%d\n",eleccion);
-			}
-			else if(event.key.keysym.scancode == SDL_SCANCODE_UP && eleccion >0){
-				eleccion--;
-				printf("%d\n",eleccion);
+	// Iniciar gameloop
+	running = 1; // Flag de control de gameloop
+	start_time = SDL_GetTicks64(); // Tiempo en que se inicio gameloop
+	int currTitle = 0;
 
-			}
-			switch(eleccion){
-				case 0:
-					//tex= IMG_LoadTexture(renderer, "StartMenu.png");
-				break;
-				case 1:
-					//tex= IMG_LoadTexture(renderer, "StartMenu.png");
-				break;
-				case 3:
-					//tex= IMG_LoadTexture(renderer, "StartMenu.png");
-				break;
+	while (running) {
+		capTimer = SDL_GetTicks64(); // Tiempo de inicio de frame
 
-			}
-			int t=event.key.keysym.scancode;
-			while(t==SDL_SCANCODE_SPACE && SDL_PollEvent(&event)){
-				bool wait=true;
-				if(eleccion==0){printf("JUGANDO JUGANDO JUGANDO JUGANDO JUGANDO\n");
-				srand(time(NULL));
-	
+		/*************** INPUT ******************/
+		menuInput();
 
-			}
-				else if(eleccion==2 || eleccion==1){
-					printf("CONTROLES CONTROLES CONTROLES CONTROLES\n");
-					tex= IMG_LoadTexture(renderer, "boton2.png");
-					SDL_RenderClear(renderer);
-					SDL_RenderCopy(renderer,tex,NULL, NULL);
-					SDL_RenderPresent(renderer);
-					while(wait){
-						while(SDL_PollEvent(&event)){
-								if(event.key.keysym.scancode == SDL_SCANCODE_ESCAPE){
-									
-									eleccion=0;
-									wait=false;
-									break;
-							}
-						}
-					}
-				}
+		/*************** LOGICA Y CAMBIOS ******************/
+		// Cargar texture de letra de FPS
+		if (countFrames > 0) {
+			snprintf(textFPS->string + 5, 5, "%.1f", FPS);
+			loadTextTexture(renderer, textFPS); // Cargar textura de string con cantidad de FPS
+			renderText(renderer, textFPS);
+		}
+		// Contador de titulos (Cambia cada 20 frames)
+		if (countFrames % 20 == 0) {
+			++currTitle;
+			if (currTitle == 4) currTitle = 0; 
+		}
 
-				else if(eleccion==3){
-					printf("SALIR SALIR SALIR SALIR\n");
-					running=false;
-				}
-				
-			}
+		/*************** RENDER ******************/	
+		SDL_RenderClear(renderer);
 
-			SDL_RenderClear(renderer);
-			SDL_RenderCopy(renderer,tex,NULL, NULL);
-			SDL_RenderPresent(renderer);
+		renderBackground(renderer, fondo);
+		SDL_RenderCopy(renderer, titles[currTitle].texture, NULL, &titles[currTitle].rect);
 
+		SDL_RenderPresent(renderer);
+
+		/********** CONTROL DE FRAMES Y TIEMPOS **********/
+		++countFrames; // Contar frames
+		frame_time = SDL_GetTicks64() - capTimer; // Tiempo de creacion de frame
+		if (frame_time < SCREEN_TICKS_PER_FRAME) {
+			SDL_Delay(SCREEN_TICKS_PER_FRAME - frame_time);  // Esperar si el tiempo de creacion de frame fue menor a 1000/60 ticks, de manera de que el juego vaya a 60FPS
+		}
+		current_time = SDL_GetTicks64() - start_time; // Tiempo actual en juego
+		FPS = countFrames / (current_time / 1000.f); // Total de frames dividos por el tiempo total (seg) en juego = (FPS) 
 	}
 
-	
-}	SDL_DestroyTexture(boton2);
-	SDL_DestroyTexture(tex);
-	SDL_DestroyRenderer(renderer);
-	SDL_DestroyWindow(win);
-	TTF_Quit();
-	SDL_Quit();
+	freeText(textFPS);
+	QuitSDL();
+
+	return 0;
 }

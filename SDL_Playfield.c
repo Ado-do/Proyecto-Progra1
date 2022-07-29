@@ -55,7 +55,23 @@ typedef struct {
 	int matrix[23][10];
 } Playfield;
 
-// Arreglo de tetrominos
+// Variables globales
+SDL_Renderer* renderer;
+SDL_Window* window;
+SDL_Texture* backgrounds[4];
+SDL_Texture* gameboard;
+
+// Flags y contadores
+Uint8 currBackground = 0; // Indice de background actual
+Uint8 droped; // Flag de drop
+bool running; // Flag loop game
+
+// Variables de control de tiempo y frames
+float FPS;
+Uint64 countFrames = 0; // Contador de frames
+Uint64 start_time, current_time, capTimer, frame_time; // Tiempos
+
+// Estructuras inicializadas
 Shape blocks[7] = { 
 	// L BLOCK
 	{{255,127,0}, // Color Naranjo
@@ -122,20 +138,8 @@ Shape blocks[7] = {
 	, 3, 'T', NULL}
 };
 
-// Variables globales
-SDL_Renderer* renderer;
-SDL_Window* window;
-SDL_Texture* fondo;
-SDL_Texture* gameboard;
-// Flags
-bool running; // Flag loop game
-int droped; // Flag de drop
-// Variables de control de tiempo y frames
-float FPS;
-uint64_t countFrames = 0; // Contador de frames
-double start_time, currrent_time, capTimer, frame_time; // Tiempos
-
-int i = 0;
+Text* textFPS;
+Text* textIntruc;
 
 // Funcion que inicializa todo SDL y demas librerias usadas
 bool InitSDL() { 
@@ -179,6 +183,30 @@ bool InitSDL() {
 	SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255); // Color fondo (Negro)
 
 	return 1;
+}
+
+// Funcion que apaga y limpia todos los subsystemas de SDL usados.
+void QuitSDL () {
+	bool error = false;
+	if (*SDL_GetError() != '\0') {
+		printf("LAST SDL ERROR: %s\n", SDL_GetError());
+		error = true;
+	}
+	if (*TTF_GetError() != '\0') {
+		printf("LAST SDL_TTF ERROR: %s\n", TTF_GetError());
+		error = true;
+	}
+	if (*IMG_GetError() != '\0') {
+		printf("LAST SDL_IMG ERROR: %s\n", IMG_GetError());
+		error = true;
+	}
+	if (error) SDL_Delay(3000);
+
+	TTF_Quit();
+	IMG_Quit();
+	SDL_DestroyRenderer(renderer);
+	SDL_DestroyWindow(window);
+	SDL_Quit();
 }
 
 // Funcion que rota piezas
@@ -287,6 +315,13 @@ void input(Shape* curr, Shape* next) {
 						drop(curr, next);
 					}
 					break;
+				case SDLK_f: {
+					int aux = currBackground;
+					do {
+						currBackground = rand() % 4;
+					} while(currBackground == aux);
+					break;
+				}
 				case SDLK_ESCAPE:
 					running = false;
 					break;
@@ -311,7 +346,7 @@ Text* initText(const char *str, const char *font, const int size, const SDL_Colo
 	return text;
 }
 
-void loadBlocksTexture() {
+void loadBlocksTextures() {
 	blocks[0].texture = IMG_LoadTexture(renderer, "assets/blocks/L.png");
 	blocks[1].texture = IMG_LoadTexture(renderer, "assets/blocks/Z.png");
 	blocks[2].texture = IMG_LoadTexture(renderer, "assets/blocks/I.png");
@@ -319,6 +354,13 @@ void loadBlocksTexture() {
 	blocks[4].texture = IMG_LoadTexture(renderer, "assets/blocks/O.png");
 	blocks[5].texture = IMG_LoadTexture(renderer, "assets/blocks/S.png");
 	blocks[6].texture = IMG_LoadTexture(renderer, "assets/blocks/T.png");
+}
+
+void loadBackgroundsTexture() {
+	backgrounds[0] = IMG_LoadTexture(renderer, "assets/backgrounds/lvl1.png");
+	backgrounds[1] = IMG_LoadTexture(renderer, "assets/backgrounds/lvl2v2.png");
+	backgrounds[2] = IMG_LoadTexture(renderer, "assets/backgrounds/lvl3.png");
+	backgrounds[3] = IMG_LoadTexture(renderer, "assets/backgrounds/lvl4v2.png");
 }
 
 // Funcion que carga textura de texto
@@ -379,23 +421,30 @@ int main(int argc, char *argv[]) {
 	srand(time(NULL));
 	InitSDL();
 
-	Text* textFPS = initText("FPS: ", "assets/fonts/upheaval.ttf", 20, (SDL_Color){255, 255, 255, 200}, 5, 1);
-	fondo = IMG_LoadTexture(renderer, "assets/backgrounds/lvl1.png"); // Cargar Fondo
+	textFPS = initText("FPS: ", "assets/fonts/upheaval.ttf", 20, (SDL_Color){255,255,255,200}, 5, 1);
+	textIntruc = initText("Press F: Change background", "assets/fonts/upheaval.ttf", 20, (SDL_Color){255,255,255,200}, 0, 1);
+
 	gameboard = IMG_LoadTexture(renderer, "assets/gameboards/gameboard1.png");
-	if (fondo == NULL || gameboard == NULL) printf("Error al crear textura: %s\n", SDL_GetError());
-	loadBlocksTexture();
+	loadTextTexture(renderer, textIntruc);
+	textIntruc->rect.x = SCREEN_WIDTH - textIntruc->rect.w - 5;
+	loadBlocksTextures();
+	loadBackgroundsTexture();
 
 	Shape curr = blocks[rand() % 7];
 	Shape next = blocks[rand() % 7];
+	currBackground = rand() % 4;
 
 	// Iniciar gameloop
 	running = 1; // Flag de control de gameloop
 	start_time = SDL_GetTicks64(); // Tiempo en que se inicio gameloop
+
 	while (running) {
 		capTimer = SDL_GetTicks64(); // Tiempo de inicio de frame
 
+	/* INPUT ********************************************************************************************/
 		input(&curr, &next);
 
+	/* LOGICA Y CAMBIOS *********************************************************************************/
 		// SoftDrop (Cada 48 frames baja 1 celda)
 		if (countFrames % 48 == 0 && droped == 0 && countFrames > 48) {
 			curr.y++;
@@ -403,35 +452,33 @@ int main(int argc, char *argv[]) {
 			droped--;
 		}
 
-		// Armar y mostrar Frame
-		SDL_RenderClear(renderer);
-
-		renderBackground(renderer, fondo, gameboard, &next);
+		// Cargar texto de FPS actuales
 		if (countFrames > 0) {
 			snprintf(textFPS->string + 5, 5, "%.1f", FPS);
 			loadTextTexture(renderer, textFPS); // Cargar textura de string con cantidad de FPS
-			renderText(renderer, textFPS);
 		}
+
+	/* RENDER **********************************************************************************************/	
+		SDL_RenderClear(renderer);
+
+		renderBackground(renderer, backgrounds[currBackground], gameboard, &next);
 		renderPiece(&curr, renderer);
+		renderText(renderer, textIntruc);
+		if (countFrames > 0) renderText(renderer, textFPS);
         
 		SDL_RenderPresent(renderer);
-		++countFrames; // Contar frames
 
-		// Control de tiempo y frames
-		frame_time = SDL_GetTicks64() - capTimer; // Tiempo de creacion de frame
-		if (frame_time < SCREEN_TICKS_PER_FRAME) {
-			SDL_Delay(SCREEN_TICKS_PER_FRAME - frame_time);  // Esperar si el tiempo de creacion de frame fue menor a 1000/60 ticks, de manera de que el juego vaya a 60FPS
-		}
-		currrent_time = SDL_GetTicks64() - start_time; // Tiempo actual en juego
-		FPS = countFrames / (currrent_time / 1000.f); // Total de frames dividos por el tiempo total (seg) en juego = (FPS) 
+	/* CONTROL DE FRAMES Y TIEMPOS **************************************************************************/
+		++countFrames; // Contar frames
+		current_time = SDL_GetTicks64() - start_time; // Tiempo actual en juego
+		FPS = countFrames / (current_time / 1000.f); // Total de frames dividos por el tiempo total (seg) en juego = (FPS) 
+		frame_time = SDL_GetTicks64() - capTimer; // Tiempo de creacion de frame anterior
+		if (frame_time < SCREEN_TICKS_PER_FRAME) SDL_Delay(SCREEN_TICKS_PER_FRAME - frame_time);  // Esperar si el tiempo de creacion de frame fue menor a 1000/60 ticks, de manera de que el juego vaya a 60FPS
 	}
 
+	freeText(textIntruc);
 	freeText(textFPS);
-	TTF_Quit();
-	IMG_Quit();
-	SDL_DestroyRenderer(renderer);
-	SDL_DestroyWindow(window);
-	SDL_Quit();
+	QuitSDL();
 
 	return 0;
 }

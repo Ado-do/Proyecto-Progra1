@@ -44,13 +44,11 @@ int main(int argc, char *argv[]) {
 	SDL_Texture* bloque = IMG_LoadTexture(rend, "assets/block.webp");
     if (bloque == NULL || fondo == NULL) printf("Error al crear texturas: %s\n", SDL_GetError());
 
-
 	SDL_Rect dest;
-	SDL_QueryTexture(bloque, NULL, NULL, &dest.w, &dest.h);
-
-	// Tamaño de cada 4 casillas
-	dest.w = BLOCK_LEN;
-	dest.h = BLOCK_LEN;
+	// Consultar y copiar propiedades de textura en "dest" (las dimensiones de bloque)
+	// SDL_QueryTexture(bloque, NULL, NULL, &dest.w, &dest.h); // Usar dimensiones de la textura
+	// dest.w = BLOCK_LEN;	// Tamaño de cada 4 casillas
+	// dest.h = BLOCK_LEN;	// Tamaño de cada 4 casillas
 	printf("dest.w inicial: %d\n", dest.w);
 	printf("dest.h inicial: %d\n", dest.h);
 

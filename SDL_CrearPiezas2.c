@@ -122,8 +122,6 @@ float FPS;
 uint64_t countFrames = 0; // Contador de frames
 double start_time, currrent_time, capTimer, frame_time; // Tiempos
 
-int i = 0;
-
 // Funcion que inicializa todo SDL
 void InitSDL() { 
 	SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "best"); // Calidad de escalado
