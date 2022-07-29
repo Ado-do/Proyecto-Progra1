@@ -31,6 +31,15 @@ typedef struct Texto {
 	SDL_Rect rect;
 } Text;
 
+typedef struct Pieza2 {
+	char letter;
+	uint8_t size;
+	uint8_t matrix[4][4];
+	int8_t x, y;
+	SDL_Texture* texture;
+	SDL_Rect rect;
+} Shape2;
+
 // Estructura de piezas
 typedef struct Pieza {
 	SDL_Color color;
@@ -43,8 +52,8 @@ typedef struct Pieza {
 } Shape;
 
 typedef struct {
-
-} Tablero;
+	int matrix[23][10];
+} Playfield;
 
 // Arreglo de tetrominos
 Shape blocks[7] = { 
@@ -128,21 +137,48 @@ double start_time, currrent_time, capTimer, frame_time; // Tiempos
 
 int i = 0;
 
-// Funcion que inicializa todo SDL
-void InitSDL() { 
-	SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "best"); // Calidad de escalado
-	if (SDL_Init(SDL_INIT_EVERYTHING) < 0) printf("Error inicializando SDL: %s\n", SDL_GetError()); // Inicializar toda la biblioteca de SDL
-	if (TTF_Init() == -1) printf("Error al inicializar SDL_TTF: %s\n", SDL_GetError()); // Inicializar SDL_TTF
-	if (IMG_Init(IMG_INIT_PNG) != IMG_INIT_PNG) printf("Error inicializando SDL_Image: %s\n", SDL_GetError()); // Inicializar SDL_image
+// Funcion que inicializa todo SDL y demas librerias usadas
+bool InitSDL() { 
+	// Inicializar toda la biblioteca de SDL
+	if (SDL_Init(SDL_INIT_EVERYTHING) < 0) {
+		printf("Error initializing SDL2: %s\n", SDL_GetError());
+		return 0;
+	}
+	// Inicializar SDL_TTF
+	if (TTF_Init() == -1) {
+		printf("Error initializing SDL_TTF: %s\n", SDL_GetError());
+		return 0;
+	}
+	// Inicializar SDL_image
+	if (IMG_Init(IMG_INIT_PNG) != IMG_INIT_PNG) {
+		printf("Error initializing SDL_Image: %s\n", SDL_GetError());
+		return 0;
+	}
+	// Calidad de escalado
+	if (SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "best") == SDL_FALSE) {
+		printf("Error assigning scaling hint: %s\n", SDL_GetError());
+	}
 	// Crear ventana
 	window = SDL_CreateWindow("Intento de tetris", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, SCREEN_WIDTH, SCREEN_HEIGHT, 0);
+	if (window == NULL) {
+		printf("Error creating window: %s\n", SDL_GetError());
+		return 0;
+	}
 	SDL_Surface* icon = IMG_Load("assets/udec_icon.webp");
-	if (icon == NULL) printf("Error al asignar icono: %s\n", SDL_GetError());
+	if (icon == NULL) {
+		printf("Error assigning window icon: %s\n", IMG_GetError());
+	}
 	SDL_SetWindowIcon(window, icon); // Poner icono a la ventana
 	SDL_FreeSurface(icon);
 	// Crear renderer
 	renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
+	if (renderer == NULL) {
+		printf("Error creating renderer: %s\n", SDL_GetError());
+		return 0;
+	}
 	SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255); // Color fondo (Negro)
+
+	return 1;
 }
 
 // Funcion que rota piezas

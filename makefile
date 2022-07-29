@@ -26,9 +26,11 @@ else # Linux
 SDL_DEVELOPMENT_INC := /usr/include/SDL2
 
 # LIBS := `sdl2-config --libs --cflags` -lSDL2main -lSDL2 -lSDL2_image -lSDL2_mixer -lSDL2_ttf
-LIBS := `sdl2-config --libs --cflags` -lSDL2main -lSDL2 -lSDL2_image -lSDL2_ttf
+LIBS := $(shell sdl-config --libs) -lSDL2main -lSDL2 -lSDL2_image -lSDL2_ttf
+# SDL_LDFLAGS := $(shell sdl-config --libs)
 
-CFLAGS := -ggdb3 -O0 --std=c99 -Wall
+CFLAGS := $(shell sdl-config --cflags) -ggdb3 -O0 --std=c99 -Wall
+# SDL_CFLAGS := $(shell sdl-config --cflags)
 
 # Binary File
 EXEC := tetris
@@ -45,16 +47,16 @@ endif
 CC := gcc
 
 # add header files here
-HDRS := *.h
+HDRS := $(wildcard *.h)
 
 # add source files here
-SRCS := SDL_Gameboard.c
+SRCS := SDL_Playfield.c
 
 # generate names of object files
 OBJS := $(SRCS:.c=.o)
 
 # name of executable
-EXEC := tetris.exe
+# EXEC := tetris.exe
 
 # default recipe
 all: $(EXEC)	
