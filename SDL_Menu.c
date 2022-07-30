@@ -341,7 +341,7 @@ void loadBlocksTexture() {
 	blocks[6].texture = IMG_LoadTexture(renderer, "assets/blocks/T.png");
 }
 
-void loadTittleTexture() {
+void loadTitleTexture() {
 	titles[0].texture = IMG_LoadTexture(renderer, "assets/backgrounds/menu/titles/title1_1.png");
 	titles[1].texture = IMG_LoadTexture(renderer, "assets/backgrounds/menu/titles/title1_2.png");
 	titles[2].texture = IMG_LoadTexture(renderer, "assets/backgrounds/menu/titles/title2_1.png");
@@ -397,7 +397,7 @@ int main(int argc, char *argv[]) {
 	loadBlocksTexture();
 	Text* textFPS = initText("FPS: ", "assets/fonts/upheaval.ttf", 20, (SDL_Color){255, 255, 255, 200}, 5, 1);
 	fondo = IMG_LoadTexture(renderer, "assets/backgrounds/menu/StartMenu.png"); // Cargar Fondo
-	loadTittleTexture();
+	loadTitleTexture();
 
 	// Shape curr = blocks[rand() % 7];
 
