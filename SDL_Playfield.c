@@ -324,7 +324,7 @@ void gameInput(Tetromino *curr, Tetromino *next, Playfield *playfield) {
 		}
 		if (e.type == SDL_KEYDOWN) {
 			switch (e.key.keysym.sym) {
-				case SDLK_UP: curr->y--; break;
+				case SDLK_UP: 		curr->y--; break;
 				case SDLK_DOWN:		softDrop = true; break;
 				case SDLK_RIGHT:	right = true; break;
 				case SDLK_LEFT:		left = true; break;
