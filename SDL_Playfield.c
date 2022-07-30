@@ -334,7 +334,16 @@ void hardDrop(Playfield *playfield, Tetromino *curr, Tetromino *next) {
 
 void softDrop(Playfield *playfield, Tetromino *curr) {
 	curr->y++;
-	
+}
+
+bool fallTetromino(Uint64 *countFrames, Tetromino *curr) {
+	// Fall (Cada 48 frames baja 1 celda)
+	if (*countFrames % 48 == 0 && dropDelay == 0 && *countFrames > 48) {
+		return true;
+	} else if (dropDelay > 0) {
+		dropDelay--;
+	}
+	return false;
 }
 
 // Funcion que recibe el input del juego
@@ -417,6 +426,11 @@ void gameUpdate(Playfield *playfield, Tetromino *curr, Tetromino *next, Tetromin
 		}
 		hold = false;
 	}
+	if (fall) {
+		curr->y++;
+		if (!fit(playfield, curr)) curr->y--;
+		fall = false;
+	}
 	if (right) {
 		curr->x++;
 		if (!fit(playfield, curr)) curr->x--;
@@ -431,6 +445,22 @@ void gameUpdate(Playfield *playfield, Tetromino *curr, Tetromino *next, Tetromin
 		initPlayfield(playfield);
 		restart = false;
 	}
+}
+
+// TODO: IMPLEMENTAR Y LIMPIAR LINEAS
+int checkCompleteLines(Playfield *playfield) {
+	int nComplete = 0, countBlocks = 0;
+	for (int i = BOARD_HEIGHT - 2; i >= 1; i++) {
+		for (int j = 1; j < BOARD_WIDTH	- 1; j++) {
+			if (playfield->matrix[i][j] != ' ') ++countBlocks;
+			else countBlocks = 0;
+		}
+		if (countBlocks == 10) {
+			++nComplete;
+			countBlocks = 0;
+		}
+	}
+	return nComplete;
 }
 
 // Funcion que asigna texturas a tetrominos
@@ -477,7 +507,7 @@ void renderBackground(SDL_Renderer *renderer, SDL_Texture *background, SDL_Textu
 
 void renderNextHold(SDL_Renderer *renderer, Tetromino *next, Tetromino *holder) {
 	int currRectNext, currRectHolder, nextX, nextY, holderX, holderY;
-	currRectNext = 0, currRectHolder = 0, nextX = 665, nextY = 200, holderX = 100, holderY = 200;
+	currRectNext = 0, currRectHolder = 0, nextX = 665, nextY = 200, holderX = 90, holderY = 200;
 	switch (next->shape) {
 		case 'O': nextX += 20; break;
 		case 'I': nextX -= 20; nextY -= 5; break;
@@ -627,14 +657,9 @@ int main(int argc, char *argv[]) {
 		gameInput(&curr, &next, playfield);
 
 	//! LOGICA Y CAMBIOS *********************************************************************************
-		// SoftDrop (Cada 48 frames baja 1 celda)
-		if (countFrames % 48 == 0 && dropDelay == 0 && countFrames > 48) {
-			// fall = true; // TODO: DESPUES DIFERENCIAR softD DE fall
-			softD = true;
-		} else if (dropDelay > 0) {
-			dropDelay--;
-		}
 		// Colisiones?
+		fall = fallTetromino(&countFrames, &curr);
+
 		gameUpdate(playfield, &curr, &next, &holder);
 
 	//! RENDER *********************************************************************************************
