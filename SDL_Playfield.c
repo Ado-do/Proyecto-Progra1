@@ -113,15 +113,19 @@ SDL_Texture* backgrounds[4];
 
 // Flags y contadores
 Uint8 currBackground = 0; // Indice de background actual
-bool up, right, left, softDrop, hardDrop, fall, hold, holded, preHolded;
-Uint8 rotation;
-Uint8 dropDelay; // Flag de drop
-bool running; // Flag loop game
+bool up, right, left, softD, hardD, fall, hold = false;  // Controles
+Uint8 rotation = 0; // Rotation flag
+bool holded, preHolded = false; // Hold flags
+bool restart = false;
+
+Uint8 dropDelay; // Contador de delay hardD
+bool running = false; // Flag loop game
+bool gameOver = false; // Flag game over
 
 // Variables de control de tiempo y frames
 float FPS;
 Uint64 countFrames = 0; // Contador de frames
-Uint64 start_time, current_time, capTimer, frame_time; // Tiempos
+Uint64 start_time, current_time, capTimer, frame_time = false; // Tiempos
 
 // Paths de assets
 char* blockPaths[] = {
@@ -199,16 +203,20 @@ void printPosTetromino(Tetromino *curr, Playfield *playfield) {
 
 // Imprimir grilla actual
 void printPlayfield(Playfield *playfield) {
+	int row = 0, column = 0;
 	printf("La matriz de la grilla actual es:\n");
-	// for (int i = 0; i < BOARD_HEIGHT + 4; ++i) {
-	for (int i = 0; i < BOARD_HEIGHT; ++i) {
-		printf("| ");
-		// for (int j = 0; j < BOARD_WIDTH + 2; ++j) {
+	for (int i = 0; i < BOARD_HEIGHT + 1; ++i) {
 		for (int j = 0; j < BOARD_WIDTH; ++j) {
-			printf("%c ", playfield->matrix[i][j]);
+			if (j == 0 && i < BOARD_HEIGHT) printf("%2d | ", row++);
+			if (i < BOARD_HEIGHT) printf("%2c ", playfield->matrix[i][j]);
+			if (j == BOARD_WIDTH - 1 && i < BOARD_HEIGHT) printf("|\n");
+			if (i == BOARD_HEIGHT) {
+				if (j != 0) printf("%2d ", column++);
+				else printf("     %2d ", column++);
+			}
 		}
-		printf("|\n");
 	}
+	printf("\n");
 }
 
 void initPlayfield(Playfield *playfield) {
@@ -230,13 +238,21 @@ Tetromino newTetromino() {
 	return tetrominoes[rand() % 7];
 }
 
+bool gameGameOverCheck(Playfield *playfield, Tetromino *curr) {
+	// TODO: MEJORAR DETECCION DE GAMEOVER 
+	if (curr->y <= 1) {
+		printf("GAME OVER!!!!\n");
+		return true;
+	} else return false;
+}
+
 // Revisa colisiones de tetromino actual
 bool fit(Playfield *playfield, Tetromino *curr) {
 	for (int i = 0; i < curr->size; i++) {
 		for (int j = 0; j < curr->size; j++) {
 			if (curr->matrix[i][j] && playfield->matrix[i + curr->y][j + curr->x] != ' ') {
 				// printf("x=%d, y=%d, playfield=%c\n", j + curr->x, i + curr->y, playfield->matrix[i + curr->y][j + curr->x]);
-				printf("COLISION!!!!! WAAAAAAAAAAAAAA\n");
+				// printf("COLISION!!!!! WAAAAAAAAAAAAAA\n");
 				return false;
 			}
 		}
@@ -288,7 +304,7 @@ void rotate(Tetromino *tetro, const Uint8 sense) {
 }
 
 // Funcion que se ejecuta cuando se dropea la pieza y esta pasa al stack (Se crea una pieza nueva)
-void drop(Playfield *playfield, Tetromino *curr, Tetromino *next) {
+void hardDrop(Playfield *playfield, Tetromino *curr, Tetromino *next) {
 	bool dropeado = false;
 	Tetromino tmp = *curr;
 	/* DROPEAR PIEZA Y GRABARLA EN EL PLAYFIELD */
@@ -302,16 +318,23 @@ void drop(Playfield *playfield, Tetromino *curr, Tetromino *next) {
 					}
 				}
 			}
+			gameGameOverCheck(playfield, &tmp);
 			dropeado = true;
 		}
 		else tmp.y++;
 	}
+	printPlayfield(playfield);
 	// SDL_DestroyTexture(tmp.color);
 	// SDL_DestroyTexture(curr->color);
 	*curr = *next;
 	// SDL_DestroyTexture(next->color);
 	*next = tetrominoes[rand()%7];
 	dropDelay = 60;
+}
+
+void softDrop(Playfield *playfield, Tetromino *curr) {
+	curr->y++;
+	
 }
 
 // Funcion que recibe el input del juego
@@ -325,7 +348,8 @@ void gameInput(Tetromino *curr, Tetromino *next, Playfield *playfield) {
 		if (e.type == SDL_KEYDOWN) {
 			switch (e.key.keysym.sym) {
 				case SDLK_UP: 		curr->y--; break;
-				case SDLK_DOWN:		softDrop = true; break;
+									// rotation = COUNTER_CLOCKWISE; break;
+				case SDLK_DOWN:		softD = true; break;
 				case SDLK_RIGHT:	right = true; break;
 				case SDLK_LEFT:		left = true; break;
 				case SDLK_z:
@@ -339,16 +363,19 @@ void gameInput(Tetromino *curr, Tetromino *next, Playfield *playfield) {
 					break;
 				case SDLK_c: hold = true; break;
 				case SDLK_SPACE:
-					if (!e.key.repeat) hardDrop = true;
+					if (!e.key.repeat) hardD = true;
 					break;
-				case SDLK_f: {
-					printPlayfield(playfield);
+				case SDLK_f:
 					int aux = currBackground;
 					do {
 						currBackground = rand() % 4;
 					} while(currBackground == aux);
 					break;
-				}
+				case SDLK_r:
+					if (!e.key.repeat) {
+						restart = true;
+					}
+					break;
 				case SDLK_ESCAPE: running = false; break;
 				default: break;
 			}
@@ -369,15 +396,16 @@ void gameUpdate(Playfield *playfield, Tetromino *curr, Tetromino *next, Tetromin
 		}
 		rotation = 0;
 	}
-	if (hardDrop) {
+	if (hardD) {
 		if (holded) holded = false;
-		drop(playfield, curr, next);
-		hardDrop = false;
+		hardDrop(playfield, curr, next);
+		hardD = false;
 	}
-	if (softDrop) {
-		curr->y++;
+	if (softD) {
+		// TODO: LOCK DELAY (MEDIO SEGUNDO EN CONTACTO CON SUELO ANTES DE CAER)
+		softDrop(playfield, curr);
 		if (!fit(playfield, curr)) curr->y--;
-		softDrop = false;
+		softD = false;
 	}
 	if (hold) {
 		if (!preHolded) preHolded = true;
@@ -389,15 +417,19 @@ void gameUpdate(Playfield *playfield, Tetromino *curr, Tetromino *next, Tetromin
 		}
 		hold = false;
 	}
-	if(right) {
+	if (right) {
 		curr->x++;
 		if (!fit(playfield, curr)) curr->x--;
 		right = false;
 	}
-	if(left) {
+	if (left) {
 		curr->x--;
 		if (!fit(playfield, curr)) curr->x++;
-		left = 0;
+		left = false;
+	}
+	if (restart) {
+		initPlayfield(playfield);
+		restart = false;
 	}
 }
 
@@ -555,12 +587,12 @@ void QuitSDL () {
 	SDL_Quit();
 }
 
+//! MAIN ====================================================================================================================================
 int main(int argc, char *argv[]) {
 	srand(time(NULL));
 	InitSDL();
 
-/* DECLARAR Y INICIALIZAR *******************************************************************************************************/
-	up = right = left = softDrop = hardDrop = fall = hold = holded = preHolded = false;
+//! DECLARAR Y INICIALIZAR *******************************************************************************************************
 	
 	SDL_Texture *gameboardInt, *gameboardExt;
 	Text* textFPS;
@@ -584,34 +616,34 @@ int main(int argc, char *argv[]) {
 	Tetromino holder;
 	currBackground = rand() % 4;
 
-/* GAME LOOP ************************************************************************************************************************/
+//! GAME LOOP *********************************************************************************************************************
 	running = 1; // Flag de control de gameloop
 	start_time = SDL_GetTicks64(); // Tiempo en que se inicio gameloop
 
 	while (running) {
 		capTimer = SDL_GetTicks64(); // Tiempo de inicio de frame
 
-	/* INPUT ********************************************************************************************/
+	//! INPUT ********************************************************************************************
 		gameInput(&curr, &next, playfield);
 
-	/* LOGICA Y CAMBIOS *********************************************************************************/
+	//! LOGICA Y CAMBIOS *********************************************************************************
 		// SoftDrop (Cada 48 frames baja 1 celda)
 		if (countFrames % 48 == 0 && dropDelay == 0 && countFrames > 48) {
-			// fall = true;
-			softDrop = true;
+			// fall = true; // TODO: DESPUES DIFERENCIAR softD DE fall
+			softD = true;
 		} else if (dropDelay > 0) {
 			dropDelay--;
 		}
 		// Colisiones?
 		gameUpdate(playfield, &curr, &next, &holder);
 
+	//! RENDER *********************************************************************************************
 		// Cargar texto de FPS actuales
 		if (countFrames > 0) {
 			snprintf(textFPS->string + 5, 6,"%.1f", FPS);
 			loadTextTexture(renderer, textFPS); // Cargar textura de string con cantidad de FPS
 		}
 
-	/* RENDER **********************************************************************************************/	
 		SDL_RenderClear(renderer);
 		// Fondo ================================================================
 		renderBackground(renderer, backgrounds[currBackground], gameboardInt);
@@ -627,7 +659,7 @@ int main(int argc, char *argv[]) {
         
 		SDL_RenderPresent(renderer);
 
-	/* CONTROL DE FRAMES Y TIEMPOS **************************************************************************/
+	//! CONTROL DE FRAMES Y TIEMPOS **************************************************************************
 		++countFrames; // Contar frames
 		current_time = SDL_GetTicks64() - start_time; // Tiempo actual en juego
 		FPS = countFrames / (current_time / 1000.f); // Total de frames dividos por el tiempo total (seg) en juego = (FPS) 
@@ -635,7 +667,7 @@ int main(int argc, char *argv[]) {
 		if (frame_time < SCREEN_TICKS_PER_FRAME) SDL_Delay(SCREEN_TICKS_PER_FRAME - frame_time);  // Esperar si el tiempo de creacion de frame fue menor a 1000/60 ticks, de manera de que el juego vaya a 60FPS
 	}
 
-/* CERRAR Y LIBERAR RECURSOS ****************************************************************************************************************************/
+//! CERRAR Y LIBERAR RECURSOS ****************************************************************************************************************************/
 	freeText(textIntruc);
 	freeText(textFPS);
 	QuitSDL();
