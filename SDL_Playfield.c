@@ -16,16 +16,17 @@
 #define SCREEN_TICKS_PER_FRAME 1000/SCREEN_FPS
 #define TILE_SIZE 37
 #define INICIAL_X 3
-#define INICIAL_Y -2
+#define INICIAL_Y 0
 #define BOARD_WIDTH 10
 #define BOARD_HEIGHT 20
 #define BOARD_X_ORIGIN 246
-#define BOARD_Y_ORIGIN 117
+#define BOARD_Y_ORIGIN 19
 
-// * ORIGEN PLAYFIELD X= 246 Y= 117
+// * ORIGEN PLAYFIELD X= 246 Y= 19
 // * DIMENSIONES PLAYFIELD W= 381 H= 839
 
 enum sense {COUNTER_CLOCKWISE, CLOCKWISE};
+enum shapes {L, Z, I, J, O, S, T};
 
 // Estructuras de texto
 typedef struct Texto {
@@ -47,34 +48,9 @@ typedef struct Tetromino {
 } Tetromino;
 
 typedef struct {
-	Uint8 matrix[BOARD_HEIGHT + 3 + 1][BOARD_WIDTH + 2]; // 24x12 (Total con los bordes)
+	char matrix[BOARD_HEIGHT + 3 + 1][BOARD_WIDTH + 1 + 1]; // 24x12 (Total con los bordes)
+	// char matrix[BOARD_HEIGHT + 3][BOARD_WIDTH]; // 23x10
 } Playfield;
-
-// Variables globales
-SDL_Renderer* renderer;
-SDL_Window* window;
-SDL_Texture* backgrounds[4];
-
-// Flags y contadores
-Uint8 currBackground = 0; // Indice de background actual
-Uint8 droped; // Flag de drop
-bool running; // Flag loop game
-
-// Variables de control de tiempo y frames
-float FPS;
-Uint64 countFrames = 0; // Contador de frames
-Uint64 start_time, current_time, capTimer, frame_time; // Tiempos
-
-// Paths de assets
-char* blockPaths[] = {
-	"assets/blocks/L.png",
-	"assets/blocks/Z.png",
-	"assets/blocks/I.png",
-	"assets/blocks/J.png",
-	"assets/blocks/O.png",
-	"assets/blocks/S.png",
-	"assets/blocks/T.png"
-};
 
 // Estructuras inicializadas
 Tetromino tetrominoes[7] = { 
@@ -128,6 +104,34 @@ Tetromino tetrominoes[7] = {
 	,{0,0,0,0}},
 	INICIAL_X, INICIAL_Y}
 };
+Playfield playfield = {0};
+
+// Variables globales
+SDL_Renderer* renderer;
+SDL_Window* window;
+SDL_Texture* backgrounds[4];
+
+// Flags y contadores
+Uint8 currBackground = 0; // Indice de background actual
+Uint8 droped; // Flag de drop
+bool running; // Flag loop game
+
+// Variables de control de tiempo y frames
+float FPS;
+Uint64 countFrames = 0; // Contador de frames
+Uint64 start_time, current_time, capTimer, frame_time; // Tiempos
+
+// Paths de assets
+char* blockPaths[] = {
+	"assets/blocks/L.png",
+	"assets/blocks/Z.png",
+	"assets/blocks/I.png",
+	"assets/blocks/J.png",
+	"assets/blocks/O.png",
+	"assets/blocks/S.png",
+	"assets/blocks/T.png"
+};
+
 
 // Funcion que inicializa todo SDL y demas librerias usadas
 bool InitSDL() { 
@@ -173,14 +177,6 @@ bool InitSDL() {
 	return 1;
 }
 
-// Funcion que asigna texturas a tetrominos
-void loadTetrominoesTexture() {
-	// Asignar texturas
-	for (int i = 0; i < 7; i++) {
-		tetrominoes[i].color = IMG_LoadTexture(renderer, blockPaths[i]);
-	}
-}
-
 // Funcion que inicializa objeto de la estructura Text
 Text* initText(const char *str, const char *font, const int size, const SDL_Color color, const int x, const int y) {
 	Text* text = malloc(sizeof(Text));
@@ -198,34 +194,28 @@ Text* initText(const char *str, const char *font, const int size, const SDL_Colo
 // Funcion que rota piezas
 void rotation(Tetromino *tetro, const Uint8 sense) {
 	Tetromino copy = *tetro;
+	for(int i = 0; i < tetro->size; i++) {
+			for(int j = 0; j < tetro->size; j++) {
+				tetro->matrix[i][j] = copy.matrix[j][i];
+			}
+		}
+	copy = *tetro;
 	switch (sense) {
 		case CLOCKWISE:
-			for(int i = 0; i < tetro->size; i++) {
-				for(int j = 0; j < tetro->size; j++) {
-					tetro->matrix[i][j] = copy.matrix[j][i];
-				}
-			}
-			copy = *tetro;
-			for(int i = 0; i < tetro->size/2; i++) {
-				for(int j = 0; j < tetro->size; j++) {
-					bool t = copy.matrix[i][j];
-					tetro->matrix[i][j] = copy.matrix[tetro->size - i - 1][j];
-					tetro->matrix[tetro->size - i - 1][j] = t;
-				}
-			}
-			break;
-		case COUNTER_CLOCKWISE:
-			for(int i = 0; i < tetro->size; i++) {
-				for(int j = 0; j < tetro->size; j++) {
-					tetro->matrix[i][j] = copy.matrix[j][i];
-				}
-			}
-			copy = *tetro;
 			for(int i = 0; i < tetro->size; i++) {
 				for(int j = 0; j < tetro->size/2; j++) {
 					bool t = copy.matrix[i][j];
 					tetro->matrix[i][j] = copy.matrix[i][tetro->size - j - 1];
 					tetro->matrix[i][tetro->size - j - 1] = t;
+				}
+			}
+			break;
+		case COUNTER_CLOCKWISE:
+			for(int i = 0; i < tetro->size/2; i++) {
+				for(int j = 0; j < tetro->size; j++) {
+					bool t = copy.matrix[i][j];
+					tetro->matrix[i][j] = copy.matrix[tetro->size - i - 1][j];
+					tetro->matrix[tetro->size - i - 1][j] = t;
 				}
 			}
 			break;
@@ -240,6 +230,14 @@ void drop(Tetromino *curr, Tetromino *next) {
 	// *next = blocks[rand()%7];
 	*next = tetrominoes[rand()%7];
 	droped = 60;
+}
+
+void fit(const Playfield *playfield, Tetromino *curr) {
+	for (int x = curr->x; x < (curr->x + curr->size); x++) {
+		for (int y = curr->y; y < (curr->y + curr->size); y++) {
+			
+		}
+	}
 }
 
 // Funcion que recibe el input del juego
@@ -302,6 +300,14 @@ void gameInput(Tetromino *curr, Tetromino *next) {
 					break;
 			}
 		}
+	}
+}
+
+// Funcion que asigna texturas a tetrominos
+void loadTetrominoesTexture() {
+	// Asignar texturas
+	for (int shape = 0; shape < 7; shape++) {
+		tetrominoes[shape].color = IMG_LoadTexture(renderer, blockPaths[shape]);
 	}
 }
 
