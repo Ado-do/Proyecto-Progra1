@@ -182,7 +182,7 @@ void rotation(Shape* s, const int sense) {
 void drop(Shape *curr, Shape *next) {
 	*curr = *next;
 	*next = blocks[rand()%7];
-	droped = 60;
+	droped = 20;
 }
 
 // Funcion que renderiza pieza
