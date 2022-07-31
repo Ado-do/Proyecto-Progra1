@@ -123,7 +123,7 @@ Font upheavalFont = {
 SDL_Renderer* renderer;
 SDL_Window* window;
 SDL_Texture* backgrounds[4];
-SDL_Texture *puppy, *toti;
+SDL_Texture *ghost, *lock;
 
 // Flags y contadores
 Uint8 currBackground = 0; // Indice de background actual
@@ -156,8 +156,8 @@ char* blockPaths[] = {
 	"assets/blocks/O.png",
 	"assets/blocks/S.png",
 	"assets/blocks/T.png",
-	"assets/blocks/puppy.png",
-	"assets/blocks/toti.png"
+	"assets/blocks/ghost.png",
+	"assets/blocks/lock.png"
 };
 char* backgroundsPath [] = {
 	"assets/backgrounds/lvl1.png",
@@ -520,8 +520,9 @@ int checkLineState(Playfield *playfield, Uint8 row) {
 
 // Funcion que elimina lineas completas por la anterior pieza dropeada
 int deleteLines(Playfield *playfield, Uint8 initialRow, Uint8 size) {
-	int nLines = 0;
-	for (int row = initialRow; row < initialRow + size; ++row) {
+	int nLines = 0, rowInterval = initialRow + size;
+	if (rowInterval > BOARD_HEIGHT - 2) rowInterval = BOARD_HEIGHT - 2;
+	for (int row = initialRow; row <= rowInterval; ++row) {
 		if (checkLineState(playfield, row) == 2) {
 			for (int column = 1; column < BOARD_WIDTH - 1; column++) {
 				playfield->matrix[row][column] = ' ';	
@@ -534,20 +535,20 @@ int deleteLines(Playfield *playfield, Uint8 initialRow, Uint8 size) {
 
 // Funcion que actualiza tablero tras eliminar piezas //TODO: MEJORAR ALGORITMO DE ORDENAMIENTO DE PLAYFIELD
 void playfieldUpdate(Playfield *playfield, int deletedLines) {
-	// printf("deletedLines inicial: %d\n", deletedLines);
-	for (int princRow = BOARD_HEIGHT - 2; princRow >= 0; princRow--) { //! MAAAAAL, ESTA RECORRIENDO TODO EL TABLERO, DEBIA RECORRER HASTA QUE SE ACABE EL STACK
+	printf("deletedLines inicial: %d\n", deletedLines);
+	for (int princRow = BOARD_HEIGHT - 2; deletedLines > 0; princRow--) { //! MAAAAAL, ESTA RECORRIENDO TODO EL TABLERO, DEBERIA RECORRER HASTA QUE SE ACABE EL STACK NOMAIS
 		if (checkLineState(playfield, princRow) == 0) {
+			deletedLines--;
 			int secRow = princRow - 1;
 			while (checkLineState(playfield, secRow) == 0) secRow--;
 			for (int column = 1; column < BOARD_WIDTH - 1; column++) {
 				playfield->matrix[princRow][column] = playfield->matrix[secRow][column];
 				playfield->matrix[secRow][column] = ' ';
 			}
-			deletedLines--;
-			// printf("deletedLines actual: %d\n", deletedLines);
+			printf("deletedLines actual: %d\n", deletedLines);
 		}
 	}
-	// printf("deletedLines final: %d\n", deletedLines);
+	printf("deletedLines final: %d\n", deletedLines);
 }
 
 // Funcion que asigna texturas a tetrominos
@@ -555,8 +556,8 @@ void loadTetrominoesTexture() {
 	// Asignar texturas
 	for (int shape = 0; shape < 9; shape++) {
 		tetrominoes[shape].color = IMG_LoadTexture(renderer, blockPaths[shape]);
-		if (shape == 7) puppy = IMG_LoadTexture(renderer, blockPaths[shape]);
-		if (shape == 8) toti = IMG_LoadTexture(renderer, blockPaths[shape]);
+		if (shape == 7) ghost = IMG_LoadTexture(renderer, blockPaths[shape]);
+		if (shape == 8) lock = IMG_LoadTexture(renderer, blockPaths[shape]);
 	}
 }
 
@@ -624,7 +625,7 @@ void renderNextHold(SDL_Renderer *renderer, Tetromino *next, Tetromino *holder) 
 					holder->rects[currRectHolder].w = holder->rects[currRectHolder].h = TILE_SIZE + 1;
 					holder->rects[currRectHolder].x = (j * (TILE_SIZE + 1)) + holderX;
 					holder->rects[currRectHolder].y = (i * (TILE_SIZE + 1)) + holderY;
-					if (holded) SDL_RenderCopy(renderer, toti, NULL, &holder->rects[currRectHolder]);
+					if (holded) SDL_RenderCopy(renderer, lock, NULL, &holder->rects[currRectHolder]);
 					else SDL_RenderCopy(renderer, holder->color, NULL, &holder->rects[currRectHolder]);
 					currRectHolder++;
 				}
@@ -662,7 +663,7 @@ void renderGhostTetromino(SDL_Renderer *renderer, Playfield *playfield, Tetromin
 						tmp.rects[currRect].w = tmp.rects[currRect].h = TILE_SIZE;
 						tmp.rects[currRect].x = ((tmp.x - 1 + j) * (TILE_SIZE + 1)) + BOARD_X_ORIGIN;
 						tmp.rects[currRect].y = ((tmp.y + i) * (TILE_SIZE + 1)) + BOARD_Y_ORIGIN;
-						SDL_RenderCopy(renderer, puppy, NULL, &tmp.rects[currRect]);
+						SDL_RenderCopy(renderer, ghost, NULL, &tmp.rects[currRect]);
 						currRect++;
 					}
 				}
@@ -774,7 +775,7 @@ int main(int argc, char *argv[]) {
 		fall = fallSpeed(&countFrames, &curr);
 	//! LOGICA Y CAMBIOS ======================================================================================
 		gameUpdate(playfield, &curr, &next, &holder);
-		if (firstDrop) deletedLines = deleteLines(playfield, lastRow, lastSize);
+		if (firstDrop) deletedLines = deleteLines(playfield, lastRow, lastSize); // TODO: EJECUTAR DSP DE DROPEAR 3 PIEZAS
 		if (deletedLines > 0) playfieldUpdate(playfield, deletedLines);
 
 		// TODO: CONTAR PUNTAJE
