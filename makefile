@@ -33,7 +33,7 @@ CFLAGS := $(shell sdl-config --cflags) -ggdb3 -O0 --std=c99 -Wall
 # SDL_CFLAGS := $(shell sdl-config --cflags)
 
 # Binary File
-EXEC := tetris
+EXEC := tetris.exe
 
 # Distribution
 DIST_NAME := SDL2-tetris-linux
