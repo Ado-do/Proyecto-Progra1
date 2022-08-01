@@ -13,10 +13,8 @@ int main(int argc, char *argv[]) {
 		SDL_Delay(3000);
 		return -1;
 	}
-
 //! DECLARAR Y INICIALIZAR *******************************************************************************************************
 
-	Playfield playfield;
 	initPlayfield(&playfield);
 
 	textFPS = initText("FPS: ", &upheavalFont, (SDL_Color){255,255,255,200}, 10, 1, 1);
@@ -33,7 +31,6 @@ int main(int argc, char *argv[]) {
 	Tetromino next = tetrominoes[rand()%7];
 	Tetromino holder;
 
-
 //! GAME LOOP *********************************************************************************************************************
 	running = 1; // Flag de control de gameloop
 	start_time = SDL_GetTicks64(); // Tiempo en que se inicio gameloop
@@ -44,12 +41,16 @@ int main(int argc, char *argv[]) {
 	//! INPUT ======================================================================================
 		gameInput(&curr, &next, &playfield);
 
-		fall = fallSpeed(&countFrames, &curr);
 	//! LOGICA Y CAMBIOS ======================================================================================
-		gameUpdate(&playfield, &curr, &next, &holder);
-		if (deletedLines > 0) playfieldUpdate(&playfield, deletedLines);
 
-		// TODO: CONTAR PUNTAJE
+		if(checkFallTime(countFrames)) fall = true;
+		gameUpdate(&playfield, &curr, &next, &holder);
+		if (droped) {
+			playfieldUpdate(&playfield, &curr, &next);
+			droped = false;
+		}
+
+		//TODO: CONTAR PUNTAJE
 	//! RENDER ======================================================================================
 		// Cargar texto de FPS actuales
 		if (countFrames > 0) {
@@ -77,7 +78,7 @@ int main(int argc, char *argv[]) {
 		SDL_RenderPresent(renderer);
 
 	//! CONTROL DE FRAMES Y TIEMPOS ======================================================================================
-		++countFrames; // Contar frames
+		countFrames++; // Contar frames
 		frame_time = SDL_GetTicks64() - capTimer; // Tiempo de creacion de frame anterior
 		if (frame_time < 1000 / 60) SDL_Delay(1000 / 60 - frame_time);  // Esperar si el tiempo de creacion de frame fue menor a 1000/60 ticks, de manera de que el juego vaya a 60FPS
 		current_time = SDL_GetTicks64() - start_time; // Tiempo actual en juego
@@ -92,7 +93,6 @@ int main(int argc, char *argv[]) {
 
 	return 0;
 }
-
 // int main(int argc, char const *argv[]) {
     // Pseudo codigo
 

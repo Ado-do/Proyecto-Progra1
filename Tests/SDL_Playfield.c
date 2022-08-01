@@ -18,7 +18,7 @@
 #define INICIAL_X 4
 #define INICIAL_Y 1
 #define BOARD_WIDTH 12 // (10 + 2 bordes laterales)
-#define BOARD_HEIGHT 24 // (23 + 1 bordes inferior) // TODO: HACERLO 40 ALTURA
+#define BOARD_HEIGHT 24 // (23 + 1 bordes inferior) //TODO: HACERLO 40 ALTURA
 #define BOARD_X_ORIGIN 246
 #define BOARD_Y_ORIGIN 19
 
@@ -54,7 +54,6 @@ typedef struct Tetromino {
 	char shape;
 	Uint8 nShape;
 	Uint8 size;
-	SDL_Texture* color;
 	bool matrix[4][4];
 	Sint8 x, y;
 	SDL_Rect rects[4];
@@ -67,51 +66,51 @@ typedef struct {
 } Playfield;
 
 // Estructuras inicializadas
-Tetromino tetrominoes[7] = { 
+Tetromino tetrominoes[7] = {
 	// L BLOCK
-	{'L', 0, 3, NULL,
+	{'L', 0, 3,
 	{{0,0,1,0} 
 	,{1,1,1,0}
 	,{0,0,0,0}
 	,{0,0,0,0}},
 	INICIAL_X, INICIAL_Y},
 	// Z BLOCK
-	{'Z', 1, 3, NULL,
+	{'Z', 1, 3,
 	{{1,1,0,0}
 	,{0,1,1,0}
 	,{0,0,0,0}
 	,{0,0,0,0}},
 	INICIAL_X, INICIAL_Y},
 	// I BLOCK
-	{'I', 2, 4, NULL,
+	{'I', 2, 4,
 	{{0,0,0,0}
 	,{1,1,1,1}
 	,{0,0,0,0}
 	,{0,0,0,0}},
 	INICIAL_X, INICIAL_Y},
 	// J BLOCK
-	{'J', 3, 3, NULL,
+	{'J', 3, 3,
 	{{1,0,0,0}
 	,{1,1,1,0}
 	,{0,0,0,0}
 	,{0,0,0,0}},
 	INICIAL_X, INICIAL_Y},
 	// O BLOCK
-	{'O', 4, 2, NULL,
+	{'O', 4, 2,
 	{{1,1,0,0}
 	,{1,1,0,0}
 	,{0,0,0,0}
 	,{0,0,0,0}},
 	INICIAL_X + 1, INICIAL_Y},
 	// S BLOCK
-	{'S', 5, 3, NULL,
+	{'S', 5, 3,
 	{{0,1,1,0}
 	,{1,1,0,0}
 	,{0,0,0,0}
 	,{0,0,0,0}},
 	INICIAL_X, INICIAL_Y},
 	// T BLOCK
-	{'T', 6, 3, NULL,
+	{'T', 6, 3,
 	{{0,1,0,0}
 	,{1,1,1,0}
 	,{0,0,0,0}
@@ -123,19 +122,22 @@ Tetromino tetrominoes[7] = {
 // Texturas globales
 SDL_Texture *ghostTexture, *lockTexture;
 SDL_Texture *gameboardInt, *gameboardExt;
+SDL_Texture *blockColors[7], *ghostBlock, *lockBlock;
 SDL_Texture* backgrounds[4];
 
 // Flags y contadores
 Uint8 currBackground; // Indice de background actual
-int deletedLines;
-int lastRow, lastSize; // Propiedades ultima pieza dropeada
+Uint8 deletedLines;
+Uint8 lastDropedRow, lastDropedSize; // Propiedades ultima pieza dropeada
+Uint8 lastStackRow;
 
 bool up, right, left, softD, hardD, fall, hold;  // Controles flags
 Sint8 rotation; // Rotation flag
 
 bool holded, firstHold; // Hold flags
-bool firstDrop; // Drop flags
-bool lock_delay; // Lock delay flag
+bool droped; // Drop flag
+Uint8 firstThreeDrops; // Drop flags
+bool lock_delayFRUNA; // Lock delay flag //TODO: RESETEAR DELAY SEGUN CASOS DE RESET DE TETRIS GUIDELINE
 Uint8 dropDelay; // Contador de delay hardD
 
 bool running; // Flag loop game
@@ -210,18 +212,19 @@ bool initSDL(SDL_Window **ptrWindow, SDL_Renderer **ptrRenderer) {
 	return 1;
 }
 
+//? Imprimir posicion actual de pieza
 void printPosTetromino(Tetromino *curr, Playfield *playfield) {
 	printf("Pos actual: (%d ,%d), playfield=\"%c\"\n", curr->x, curr->y, playfield->matrix[curr->y][curr->x]);
 }
 
-// Imprimir grilla actual
+//? Imprimir grilla actual
 void printPlayfield(Playfield *playfield) {
 	int row = 0, column = 0;
 	printf("La matriz de la grilla actual es:\n");
-	for (int i = 0; i < BOARD_HEIGHT + 1; ++i) {
+	for (int i = 0; i < BOARD_HEIGHT + 1; i++) {
 		if (i == 3) printf("   ---------------------------------------\n");
 		if (i == BOARD_HEIGHT) printf("   ---------------------------------------\n");
-		for (int j = 0; j < BOARD_WIDTH; ++j) {
+		for (int j = 0; j < BOARD_WIDTH; j++) {
 			if (j == 0 && i < BOARD_HEIGHT) printf("%2d | ", row++);
 			if (i < BOARD_HEIGHT) printf("%2c ", playfield->matrix[i][j]);
 			if (j == BOARD_WIDTH - 1 && i < BOARD_HEIGHT) printf("|\n");
@@ -234,12 +237,12 @@ void printPlayfield(Playfield *playfield) {
 	printf("\n");
 }
 
-// Comprobar estado linea (-1 = borde, 0 = vacia, 1 = incompleta, 2 = completa)
+// Funcion que comprueba estado de linea (-1 = borde, 0 = vacia, 1 = incompleta, 2 = completa)
 int checkLineState(Playfield *playfield, Uint8 row) {
 	int countBlocks = 0;
 	for (int column = 1; column < BOARD_WIDTH - 1; column++) {
 		if (playfield->matrix[row][column] == '#') return -1;
-		if (playfield->matrix[row][column] != ' ') ++countBlocks;
+		if (playfield->matrix[row][column] != ' ') countBlocks++;
 	}
 	if (countBlocks == 10) return 2;
 	else if (countBlocks == 0) return 0;
@@ -247,43 +250,67 @@ int checkLineState(Playfield *playfield, Uint8 row) {
 }
 
 // Funcion que elimina lineas completas por la anterior pieza dropeada
-int deleteLines(Playfield *playfield, Uint8 initialRow, Uint8 size) {
-	int nLines = 0, rowInterval = initialRow + size;
+int deleteLines(Playfield *playfield) {
+	Uint8 deletedLines = 0;
+	
+	Uint8 rowInterval = lastDropedRow + lastDropedSize;
 	if (rowInterval > BOARD_HEIGHT - 2) rowInterval = BOARD_HEIGHT - 2;
-	for (int row = initialRow; row <= rowInterval; ++row) {
+
+	//* Llenar lineas completas de espacios vacios (Recorrer matriz hacia abajo)
+	for (int row = lastDropedRow; row <= rowInterval; row++) {
 		if (checkLineState(playfield, row) == 2) {
 			for (int column = 1; column < BOARD_WIDTH - 1; column++) {
 				playfield->matrix[row][column] = ' ';	
 			}
-			++nLines;
+			deletedLines++;
 		}
 	}
-	return nLines;
+
+	//* Bajar piezas que quedaron flotando (Recorrer matriz hacia arriba)
+	for (int mainRow = rowInterval; mainRow > lastStackRow; mainRow--) { 
+		if (checkLineState(playfield, mainRow) == 0) {
+			int secondRow = mainRow - 1; // Recorrer filas hasta encontrar filas incompletas
+			while (checkLineState(playfield, secondRow) == 0 && secondRow > lastStackRow) secondRow--; // Saltarse lineas vacias
+			// Swap linea vacia (mainRow) con siguiente linea incompleta (sencondRow)
+			for (int column = 1; column < BOARD_WIDTH - 1; column++) {
+				playfield->matrix[mainRow][column] = playfield->matrix[secondRow][column];
+				playfield->matrix[secondRow][column] = ' ';
+			}
+		}
+	}
+
+	return deletedLines;
 }
 
-// Funcion que revisa si el jugador perdio
+// Funcion que revisa si el jugador perdio //TODO: MEJORAR DETECCION DE GAMEOVER
 bool gameOverCheck(Playfield *playfield, Tetromino *curr) {
-	// TODO: MEJORAR DETECCION DE GAMEOVER
-	bool loss = false;
-	// Contar bloques de la pieza encima del tablero, si los 4 estan arriba pierdes
+	bool gameOver = false;
+	// Contar bloques de la pieza encima del tablero, si los 4 estan arriba, pierdes
 	int countBlocks = 0;
 	for (int i = 0; i < curr->size; i++) {
 		for (int j = 0; j < curr->size; j++) {
+			// Coordenada Y respecto al tablero de bloque actual
 			int coordY = i + curr->y;
-			if (curr->matrix[i][j] && coordY <= 2) ++countBlocks;
+			//TODO: Hacer mas flexible respecto a situacion del tablero y pieza actual
+			if (curr->matrix[i][j] && coordY <= 2) countBlocks++;
 		}
 	}
 	switch (countBlocks) {
-		case 3:
-			if (!deleteLines(playfield, lastRow, lastSize)) loss = true;
+		case 3: //* "Mini clutch" (Salvar juego si la ultima pieza logro limpiar al menos una linea antes de caer)
+			if (deletedLines == 0) {
+				printf("GAME OVER!!!!\n"); //? Avisar gameover
+				restart = true; //? Quitar al implementar pantalla de gameover
+				gameOver = true;
+			}
 			break;
-		case 4:
-			printf("GAME OVER!!!!\n");
-			restart = true; // TODO: POR AHORA
-			loss = true;
+		case 4: //* "Top out" (Pieza cayo totalmente de playfield)
+			printf("GAME OVER!!!!\n"); //? Avisar gameover
+			restart = true; //TODO: POR AHORA
+			gameOver = true; //? Quitar al implementar pantalla de gameover
 			break;
+		default: break;
 	}
-	return loss;
+	return gameOver;
 }
 
 // Funcion que inicializa objeto de la estructura Text
@@ -331,15 +358,29 @@ bool collision(Playfield *playfield, Tetromino *curr) {
 }
 
 // Generar nueva pieza pseudo aleatoria (FALTA AGREGAR 7-BAG)
-void newTetromino(Playfield *playfield, Tetromino *curr, Tetromino *next) {
+void newTetromino(Tetromino *curr, Tetromino *next) {
 	*curr = *next;
 	*next = tetrominoes[rand() % 7];
 }
 
-void dropTetromino(Playfield *playfield, Tetromino *curr, Tetromino *next) {
-	if (!firstDrop) firstDrop = true;
-	if (collision(playfield, curr)) curr->y--;
+void countStackHeight(Playfield *playfield) {
+	for (int row = 0; row < BOARD_HEIGHT - 1; row++) {
+		if (checkLineState(playfield, row) == 1) {
+			lastStackRow = row;
+			printf("lastStackRow: %d\n", lastStackRow);
+			break;
+		}
+	}
+}
 
+// Funcion que actualiza tablero
+void playfieldUpdate(Playfield *playfield, Tetromino *curr, Tetromino *next) {
+	// Guardar caracteristicas de pieza dropeada
+	lastDropedRow = curr->y;
+	lastDropedSize = curr->size;
+	printf("lastDropedRow: %d, lastDropedSize: %d!!!!!!!!!!\n", curr->y, curr->size); //? Test de drops
+
+	// Ingresar pieza actual al stack
 	for (int i = 0; i < curr->size; i++) {
 		for (int j = 0; j < curr->size; j++) {
 			if (curr->matrix[i][j]) {
@@ -347,16 +388,18 @@ void dropTetromino(Playfield *playfield, Tetromino *curr, Tetromino *next) {
 			}
 		}
 	}
-	printPlayfield(playfield);
-	lastRow = curr->y;
-	lastSize = curr->size;
-	printf("lastTetroRow: %d, lastTetroSize: %d!!!!!!!!!!\n", curr->y, curr->size);
+	printPlayfield(playfield); //? Imprimir matrix actual
+	countStackHeight(playfield); // Comprobar altura del Stack
 
-	deletedLines = deleteLines(playfield, lastRow, lastSize); // TODO: EJECUTAR DSP DE DROPEAR 3 PIEZAS
-	gameOverCheck(playfield, curr);
+	//TODO: UTILIZAR DELETEDFILES PARA CONTAR FILAS HECHAS Y AÑADIR DIFICULTAD
+	if (firstThreeDrops >= 3) deletedLines = deleteLines(playfield);
+	if (lastStackRow <= 5) gameOverCheck(playfield, curr);
 
-	newTetromino(playfield, curr, next);
+	newTetromino(curr, next);
 }
+
+//TODO: WALL KICK PARA CASOS BASICOS COMO POR EJEMPLO COLISION CON BORDE CUANDO "lastRowStack" ES MENOR A "posY" DE FIGURA
+void wallKickFRUNA(Playfield *playfield, Tetromino *curr, Sint8 rotation);
 
 // Funcion que rota piezas
 void rotateTetromino(Tetromino *tetro, const Sint8 sense) {
@@ -403,28 +446,34 @@ void rotateTetromino(Tetromino *tetro, const Sint8 sense) {
 
 // Funcion que se ejecuta cuando se dropea la pieza y esta pasa al stack (Se crea una pieza nueva)
 void hardDropTetromino(Playfield *playfield, Tetromino *curr, Tetromino *next) {
-	bool noCollision = false;
-	while (!noCollision) {
-		if (collision(playfield, curr)) {
-			dropTetromino(playfield, curr, next);
-			noCollision = true;
-		} else curr->y++;
+	if (firstThreeDrops < 3) firstThreeDrops++;
+	// Bajar hasta que sea posible colision
+	if (curr->y < lastStackRow - 4) {
+		curr->y = lastStackRow - 4;
 	}
+	// Bajar pieza hasta que choque
+	while (!collision(playfield, curr)) curr->y++;
+	curr->y--;
+
+	droped = true;
+	// Pequeño delay antes de que la nueva pieza baje de nuevo
 	dropDelay = 60;
 }
 
-// TODO: MEJORAR SOFTDROP ****************************************************
+//TODO: MEJORAR SOFTDROP ****************************************************
 void softDropTetromino(Playfield *playfield, Tetromino *curr, Tetromino *next) {
 	curr->y++;
 	if (collision(playfield, curr)) {
-		dropTetromino(playfield, curr, next);
+		curr->y--;
+		droped = true;
+		if (firstThreeDrops < 3) firstThreeDrops++;
 	}
 }
 
-// TODO: HACER VELOCIDAD DE CAIDA DEPENDIENTE DE DIFICULTAD ******************
-bool fallSpeed(Uint64 *countFrames, Tetromino *curr) {
+//TODO: HACER VELOCIDAD DE CAIDA DEPENDIENTE DE DIFICULTAD ******************
+bool checkFallTime(Uint64 countFrames) {
 	// Fall (Cada 48 frames baja 1 celda)
-	if (*countFrames % 48 == 0 && dropDelay == 0 && *countFrames > 48) {
+	if (countFrames % 48 == 0 && dropDelay == 0 && countFrames > 48) {
 		return true;
 	} else if (dropDelay > 0) {
 		dropDelay--;
@@ -442,8 +491,9 @@ void gameInput(Tetromino *curr, Tetromino *next, Playfield *playfield) {
 		}
 		if (e.type == SDL_KEYDOWN) {
 			switch (e.key.keysym.sym) {
-				case SDLK_UP: 		curr->y--; break;
-									// rotation = COUNTER_CLOCKWISE; break;
+				case SDLK_UP:
+					if (!e.key.repeat) rotation = COUNTER_CLOCKWISE;
+					break;
 				case SDLK_DOWN:		softD = true; break;
 				case SDLK_RIGHT:	right = true; break;
 				case SDLK_LEFT:		left = true; break;
@@ -470,7 +520,7 @@ void gameInput(Tetromino *curr, Tetromino *next, Playfield *playfield) {
 	}
 }
 
-// TODO: ORGANIZAR BIEN ***************************
+//TODO: ORGANIZAR BIEN ***************************
 // Game updater (revisa coliones antes de mover)
 void gameUpdate(Playfield *playfield, Tetromino *curr, Tetromino *next, Tetromino *holder) {
 	if (rotation) {
@@ -490,14 +540,14 @@ void gameUpdate(Playfield *playfield, Tetromino *curr, Tetromino *next, Tetromin
 		hardD = false;
 	}
 	if (softD) {
-		// TODO: LOCK DELAY (MEDIO SEGUNDO EN CONTACTO CON SUELO ANTES DE CAER) **************************
+		//TODO: LOCK DELAY (MEDIO SEGUNDO EN CONTACTO CON SUELO ANTES DE CAER) **************************
 		softDropTetromino(playfield, curr, next);
 		softD = false;
 	}
 	if (hold) {
 		if (!firstHold) {
 			*holder = tetrominoes[curr->nShape];
-			newTetromino(playfield, curr, next);
+			newTetromino(curr, next);
 			firstHold = true;
 			holded = true;
 		} else {
@@ -510,17 +560,18 @@ void gameUpdate(Playfield *playfield, Tetromino *curr, Tetromino *next, Tetromin
 		}
 		hold = false;
 	}
-	// TODO: CREAR FUNCION ESPECIFICA PARA FALL
+	//TODO: CREAR FUNCION ESPECIFICA PARA FALL
 	if (fall) {
 		curr->y++;
 		if (collision(playfield, curr)) {
 			curr->y--;
-			if (!lock_delay) {
+			if (!lock_delayFRUNA) {
 				lock_timer = countFrames + 30;
-				lock_delay = true;
+				lock_delayFRUNA = true;
 			} else {
 				if (countFrames > lock_timer) {
-					dropTetromino(playfield, curr, next);
+					lock_delayFRUNA = false;
+					droped = true;
 				}
 			}
 		}
@@ -537,38 +588,20 @@ void gameUpdate(Playfield *playfield, Tetromino *curr, Tetromino *next, Tetromin
 		left = false;
 	}
 	if (restart) {
-		if (currBackground < 3) ++currBackground;
+		if (currBackground < 3) currBackground++;
 		else currBackground = 0;
 		initPlayfield(playfield);
 		restart = false;
 	}
 }
 
-// Funcion que actualiza tablero tras eliminar piezas //TODO: MEJORAR ALGORITMO DE ORDENAMIENTO DE PLAYFIELD
-void playfieldUpdate(Playfield *playfield, int deletedLines) {
-	printf("deletedLines inicial: %d\n", deletedLines);
-	for (int princRow = BOARD_HEIGHT - 2; princRow > 0; princRow--) { //! MAAAAAL, ESTA RECORRIENDO TODO EL TABLERO, DEBERIA RECORRER HASTA QUE SE ACABE EL STACK NOMAIS
-		if (checkLineState(playfield, princRow) == 0) {
-			// deletedLines--;
-			int secRow = princRow - 1;
-			while (checkLineState(playfield, secRow) == 0) secRow--;
-			for (int column = 1; column < BOARD_WIDTH - 1; column++) {
-				playfield->matrix[princRow][column] = playfield->matrix[secRow][column];
-				playfield->matrix[secRow][column] = ' ';
-			}
-			// printf("deletedLines actual: %d\n", deletedLines);
-		}
-	}
-	// printf("deletedLines final: %d\n", deletedLines);
-}
-
 // Funcion que asigna texturas a tetrominos
 void loadTetrominoesTexture(SDL_Renderer *renderer) {
 	// Asignar texturas
-	for (int shape = 0; shape < 9; shape++) {
-		tetrominoes[shape].color = IMG_LoadTexture(renderer, blockPaths[shape]);
-		if (shape == 7) ghostTexture = IMG_LoadTexture(renderer, blockPaths[shape]);
-		if (shape == 8) lockTexture = IMG_LoadTexture(renderer, blockPaths[shape]);
+	for (int nShape = 0; nShape < 9; nShape++) {
+		blockColors[nShape] = IMG_LoadTexture(renderer, blockPaths[nShape]);
+		if (nShape == 7) ghostBlock = IMG_LoadTexture(renderer, blockPaths[nShape]);
+		if (nShape == 8) lockBlock = IMG_LoadTexture(renderer, blockPaths[nShape]);
 	}
 }
 
@@ -597,7 +630,9 @@ void loadTextTexture(SDL_Renderer *renderer, Text *text) {
 
 // Funcion que renderiza textura de texto
 void renderText(SDL_Renderer *renderer, Text *text) {
-	if (SDL_RenderCopy(renderer, text->texture, NULL, &text->rect) < 0) printf("ERROR RENDERIZANDO TEXTO: %s\n", SDL_GetError());
+	if (SDL_RenderCopy(renderer, text->texture, NULL, &text->rect) < 0) {
+		printf("Error renderizando texto: %s\n", SDL_GetError());
+	}
 }
 
 // Renderizar texturas de fondo
@@ -620,7 +655,7 @@ void renderNextHold(SDL_Renderer *renderer, Tetromino *next, Tetromino *holder) 
 				next->rects[currRectNext].w = next->rects[currRectNext].h = TILE_SIZE + 1;
 				next->rects[currRectNext].x = (j * (TILE_SIZE + 1)) + nextX;
 				next->rects[currRectNext].y = (i * (TILE_SIZE + 1)) + nextY;
-				SDL_RenderCopy(renderer, next->color, NULL, &next->rects[currRectNext]);
+				SDL_RenderCopy(renderer, blockColors[next->nShape], NULL, &next->rects[currRectNext]);
 				currRectNext++;
 			}
 		}
@@ -637,8 +672,8 @@ void renderNextHold(SDL_Renderer *renderer, Tetromino *next, Tetromino *holder) 
 					holder->rects[currRectHolder].w = holder->rects[currRectHolder].h = TILE_SIZE + 1;
 					holder->rects[currRectHolder].x = (j * (TILE_SIZE + 1)) + holderX;
 					holder->rects[currRectHolder].y = (i * (TILE_SIZE + 1)) + holderY;
-					if (holded) SDL_RenderCopy(renderer, lockTexture, NULL, &holder->rects[currRectHolder]);
-					else SDL_RenderCopy(renderer, holder->color, NULL, &holder->rects[currRectHolder]);
+					if (holded) SDL_RenderCopy(renderer, lockBlock, NULL, &holder->rects[currRectHolder]);
+					else SDL_RenderCopy(renderer, blockColors[holder->nShape], NULL, &holder->rects[currRectHolder]);
 					currRectHolder++;
 				}
 			}
@@ -655,7 +690,7 @@ void renderTetromino(SDL_Renderer *renderer, Tetromino *tetro) {
 				// tetro->rects[currRect].w = tetro->rects[currRect].h = TILE_SIZE + 1;
 				tetro->rects[currRect].x = ((tetro->x - 1 + j) * (TILE_SIZE + 1)) + BOARD_X_ORIGIN;
 				tetro->rects[currRect].y = ((tetro->y + i) * (TILE_SIZE + 1)) + BOARD_Y_ORIGIN;
-				SDL_RenderCopy(renderer, tetro->color, NULL, &tetro->rects[currRect]);
+				SDL_RenderCopy(renderer, blockColors[tetro->nShape], NULL, &tetro->rects[currRect]);
 				currRect++;
 			}
 		}
@@ -675,7 +710,7 @@ void renderGhostTetromino(SDL_Renderer *renderer, Playfield *playfield, Tetromin
 						currGhost.rects[currRect].w = currGhost.rects[currRect].h = TILE_SIZE;
 						currGhost.rects[currRect].x = ((currGhost.x - 1 + j) * (TILE_SIZE + 1)) + BOARD_X_ORIGIN;
 						currGhost.rects[currRect].y = ((currGhost.y + i) * (TILE_SIZE + 1)) + BOARD_Y_ORIGIN;
-						SDL_RenderCopy(renderer, ghostTexture, NULL, &currGhost.rects[currRect]);
+						SDL_RenderCopy(renderer, ghostBlock, NULL, &currGhost.rects[currRect]);
 						currRect++;
 					}
 				}
@@ -690,21 +725,21 @@ void renderPlayfield(SDL_Renderer *renderer, Playfield *playfield) {
 		for (int x = 1; x < BOARD_WIDTH - 1; x++) {
 			if (playfield->matrix[y][x] != ' ') {
 				SDL_Rect tmpRect;
-				int nColor;
+				int nShape;
 				tmpRect.w = tmpRect.h = TILE_SIZE;
 				tmpRect.x = ((x - 1) * (TILE_SIZE + 1)) + BOARD_X_ORIGIN;
 				tmpRect.y = (y * (TILE_SIZE + 1)) + BOARD_Y_ORIGIN;
 				switch (playfield->matrix[y][x]) {
-					case 'L': nColor = 0; break;
-					case 'Z': nColor = 1; break;
-					case 'I': nColor = 2; break;
-					case 'J': nColor = 3; break;
-					case 'O': nColor = 4; break;
-					case 'S': nColor = 5; break;
-					case 'T': nColor = 6; break;
+					case 'L': nShape = 0; break;
+					case 'Z': nShape = 1; break;
+					case 'I': nShape = 2; break;
+					case 'J': nShape = 3; break;
+					case 'O': nShape = 4; break;
+					case 'S': nShape = 5; break;
+					case 'T': nShape = 6; break;
 					default: break;
 				}
-				if (SDL_RenderCopy(renderer, tetrominoes[nColor].color, NULL, &tmpRect) < 0) {
+				if (SDL_RenderCopy(renderer, blockColors[nShape], NULL, &tmpRect) < 0) {
 					printf("ERROR RENDER PLAYFIELD: %s\n", SDL_GetError());
 				}
 			}
@@ -789,12 +824,16 @@ int main(int argc, char *argv[]) {
 	//! INPUT ======================================================================================
 		gameInput(&curr, &next, playfield);
 
-		fall = fallSpeed(&countFrames, &curr);
 	//! LOGICA Y CAMBIOS ======================================================================================
-		gameUpdate(playfield, &curr, &next, &holder);
-		if (deletedLines > 0) playfieldUpdate(playfield, deletedLines);
 
-		// TODO: CONTAR PUNTAJE
+		if(checkFallTime(countFrames)) fall = true;
+		gameUpdate(playfield, &curr, &next, &holder);
+		if (droped) {
+			playfieldUpdate(playfield, &curr, &next);
+			droped = false;
+		}
+
+		//TODO: CONTAR PUNTAJE
 	//! RENDER ======================================================================================
 		// Cargar texto de FPS actuales
 		if (countFrames > 0) {
@@ -822,7 +861,7 @@ int main(int argc, char *argv[]) {
 		SDL_RenderPresent(renderer);
 
 	//! CONTROL DE FRAMES Y TIEMPOS ======================================================================================
-		++countFrames; // Contar frames
+		countFrames++; // Contar frames
 		frame_time = SDL_GetTicks64() - capTimer; // Tiempo de creacion de frame anterior
 		if (frame_time < 1000 / 60) SDL_Delay(1000 / 60 - frame_time);  // Esperar si el tiempo de creacion de frame fue menor a 1000/60 ticks, de manera de que el juego vaya a 60FPS
 		current_time = SDL_GetTicks64() - start_time; // Tiempo actual en juego

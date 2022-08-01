@@ -48,16 +48,21 @@ typedef struct Piezas {
 
 typedef struct Tablero {
 	char matrix[BOARD_HEIGHT][BOARD_WIDTH]; // 24x12 (Total con los bordes y lineas superiores)
+    Tetromino curr;
+	Tetromino next;
+    Tetromino holder;
+
 } Playfield;	//* Estructura de tablero
 
 typedef struct Tetris {
     Playfield playfield;
-    Tetromino curr;
-	Tetromino next;
-    Tetromino holder;
+	Sint64 score;
 } Tetris;	//* Estructura que contiene datos de sesion actual
 
 //! Estructuras inicializadas !//
+//* Tablero/Grilla/Zona de juego
+Playfield playfield;
+
 //* Fuentes utilizadas
 Font upheavalFont = {"assets/fonts/upheaval.ttf", 20};
 
@@ -118,7 +123,8 @@ Text* textFPS;
 Text* textIntruc;
 
 //! Variables globales ======================================================
-//* Variables SDL
+
+//* Variables principales SDL
 SDL_Window* window;
 SDL_Renderer* renderer;
 
@@ -128,16 +134,19 @@ SDL_Texture *blockColors[7], *ghostBlock, *lockBlock;
 SDL_Texture *backgrounds[4];
 
 //* Flags y contadores (se inicializan en 0)
+
 Uint8 currBackground; // Indice de background actual
 //* Flags de input
 bool up, right, left, softD, hardD, fall, hold;  // Controles flags
 Sint8 rotation; // Rotation flag
 
-int deletedLines; // Contador de lineas eliminadas
-int lastRow, lastSize; // Propiedades ultima pieza dropeada
+Uint8 deletedLines; // Contador de lineas eliminadas
+Uint8 lastDropedRow, lastDropedSize; // Propiedades ultima pieza dropeada
+Uint8 lastStackRow; // Ultima fila ocupada por stack (ALTURA)
 bool holded, firstHold; // Hold flags
-bool firstDrop; // Drop flags
-bool lock_delay; // Lock delay flag
+bool droped; // Drop flag
+Uint8 firstThreeDrops = 0; // Drop flags
+bool lock_delayFRUNA; // Lock delay flag //TODO: RESETEAR DELAY SEGUN CASOS DE RESET DE TETRIS GUIDELINE
 Uint8 dropDelay; // Contador de delay hardD
 
 bool running; // Flag loop game

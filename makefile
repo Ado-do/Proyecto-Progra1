@@ -59,14 +59,14 @@ OBJS := $(SRCS:.c=.o)
 # EXEC := tetris.exe
 
 # default recipe
-all: $(EXEC)	
+all: $(EXEC) $(SRCS)	
 
 # recipe for building the final executable
 $(EXEC): $(OBJS) $(HDRS) $(SRCS) makefile	
 	$(CC) $(CFLAGS) -o $@ $(OBJS) $(LIBS)
 
 # recipe for building object files
-$(OBJS): $(@:.o=.c) $(SRCS) makefile	
+$(OBJS): $(@:.o=.c) $(HDRS) $(SRCS) makefile	
 	$(CC) -o $@ $(@:.o=.c) -c $(CFLAGS)
 
 # recipe to clean the workspace

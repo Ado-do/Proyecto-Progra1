@@ -22,7 +22,9 @@ const int SCREEN_FPS = 62;
 const int SCREEN_TICKS_PER_FRAME = 1000 / SCREEN_FPS;
 
 int main(int argc, char *argv[]) {
+
 	if (SDL_Init(SDL_INIT_EVERYTHING) != 0) printf("Error inicializando SDL: %s\n", SDL_GetError());
+	IMG_Init(IMG_INIT_PNG);
 	
 	SDL_Window* win = SDL_CreateWindow("Intento de tetris", 
 										SDL_WINDOWPOS_CENTERED, 
@@ -47,8 +49,8 @@ int main(int argc, char *argv[]) {
 	SDL_Rect dest;
 	// Consultar y copiar propiedades de textura en "dest" (las dimensiones de bloque)
 	// SDL_QueryTexture(bloque, NULL, NULL, &dest.w, &dest.h); // Usar dimensiones de la textura
-	// dest.w = BLOCK_LEN;	// Tamaño de cada 4 casillas
-	// dest.h = BLOCK_LEN;	// Tamaño de cada 4 casillas
+	dest.w = BLOCK_LEN;	// Tamaño de cada 4 casillas
+	dest.h = BLOCK_LEN;	// Tamaño de cada 4 casillas
 	printf("dest.w inicial: %d\n", dest.w);
 	printf("dest.h inicial: %d\n", dest.h);
 
