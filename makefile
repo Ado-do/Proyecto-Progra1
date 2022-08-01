@@ -50,7 +50,7 @@ CC := gcc
 HDRS := $(wildcard *.h)
 
 # add source files here
-SRCS := SDL_Playfield.c
+SRCS := Tetris_main.c
 
 # generate names of object files
 OBJS := $(SRCS:.c=.o)

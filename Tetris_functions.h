@@ -1,169 +1,15 @@
-#define SDL_MAIN_HANDLED
+#pragma once
+
+#include "Tetris_static.h"
 
 #include <SDL2/SDL.h>
-#include <SDL2/SDL_timer.h>
 #include <SDL2/SDL_image.h>
 #include <SDL2/SDL_ttf.h>
+#include <SDL2/SDL_timer.h>
 #include <stdio.h>
 #include <string.h>
 #include <stdbool.h>
 #include <time.h>
-
-// Constantes
-#define SCREEN_WIDTH 870
-#define SCREEN_HEIGHT 950
-#define SCREEN_FPS 60
-#define SCREEN_TICKS_PER_FRAME 1000/SCREEN_FPS
-#define TILE_SIZE 37
-#define INICIAL_X 4
-#define INICIAL_Y 1
-#define BOARD_WIDTH 12 // (10 + 2 bordes laterales)
-#define BOARD_HEIGHT 24 // (23 + 1 bordes inferior) // TODO: HACERLO 40 ALTURA
-#define BOARD_X_ORIGIN 246
-#define BOARD_Y_ORIGIN 19
-
-// * ORIGEN PLAYFIELD X= 246 Y= 19
-// * DIMENSIONES PLAYFIELD W= 381 H= 839
-
-enum sense {COUNTER_CLOCKWISE = -1, CLOCKWISE = 1, DOUBLE_CLOCKWISE = 2};
-
-// Estructuras de texto
-typedef struct Texto {
-	char string[100]; // String del texto
-	TTF_Font* font; // Font del texto
-	SDL_Color color; // Color del texto
-	SDL_Texture* texture; // Textura del texto
-	SDL_Rect rect; // Rect del texto (donde se renderiza el texto en pantalla)
-	float size; // Escala del texto
-} Text;
-
-// Estructura de Fonts
-typedef struct Font {
-	char* path; // Path del font
-	Uint8 size; // Tamaño del font (Escala fija)
-} Font;
-
-Font upheavalFont = {
-	.path = "assets/fonts/upheaval.ttf",
-	.size = 20
-};
-
-// Estructura de piezas
-typedef struct Tetromino {
-	char shape;
-	Uint8 nShape;
-	Uint8 size;
-	SDL_Texture* color;
-	bool matrix[4][4];
-	Sint8 x, y;
-	SDL_Rect rects[4];
-} Tetromino;
-
-typedef struct {
-	char matrix[BOARD_HEIGHT][BOARD_WIDTH]; // 24x12 (Total con los bordes)
-	// char matrix[BOARD_HEIGHT + 3 + 1][BOARD_WIDTH + 1 + 1]; // 24x12 (Total con los bordes)
-	// char matrix[BOARD_HEIGHT + 3][BOARD_WIDTH]; // 23x10
-} Playfield;
-
-// Estructuras inicializadas
-Tetromino tetrominoes[7] = { 
-	// L BLOCK
-	{'L', 0, 3, NULL,
-	{{0,0,1,0} 
-	,{1,1,1,0}
-	,{0,0,0,0}
-	,{0,0,0,0}},
-	INICIAL_X, INICIAL_Y},
-	// Z BLOCK
-	{'Z', 1, 3, NULL,
-	{{1,1,0,0}
-	,{0,1,1,0}
-	,{0,0,0,0}
-	,{0,0,0,0}},
-	INICIAL_X, INICIAL_Y},
-	// I BLOCK
-	{'I', 2, 4, NULL,
-	{{0,0,0,0}
-	,{1,1,1,1}
-	,{0,0,0,0}
-	,{0,0,0,0}},
-	INICIAL_X, INICIAL_Y},
-	// J BLOCK
-	{'J', 3, 3, NULL,
-	{{1,0,0,0}
-	,{1,1,1,0}
-	,{0,0,0,0}
-	,{0,0,0,0}},
-	INICIAL_X, INICIAL_Y},
-	// O BLOCK
-	{'O', 4, 2, NULL,
-	{{1,1,0,0}
-	,{1,1,0,0}
-	,{0,0,0,0}
-	,{0,0,0,0}},
-	INICIAL_X + 1, INICIAL_Y},
-	// S BLOCK
-	{'S', 5, 3, NULL,
-	{{0,1,1,0}
-	,{1,1,0,0}
-	,{0,0,0,0}
-	,{0,0,0,0}},
-	INICIAL_X, INICIAL_Y},
-	// T BLOCK
-	{'T', 6, 3, NULL,
-	{{0,1,0,0}
-	,{1,1,1,0}
-	,{0,0,0,0}
-	,{0,0,0,0}},
-	INICIAL_X, INICIAL_Y}
-};
-
-//! Variables globales ======================================================
-// Texturas globales
-SDL_Texture *ghostTexture, *lockTexture;
-SDL_Texture *gameboardInt, *gameboardExt;
-SDL_Texture* backgrounds[4];
-
-// Flags y contadores
-Uint8 currBackground; // Indice de background actual
-int deletedLines;
-int lastRow, lastSize; // Propiedades ultima pieza dropeada
-
-bool up, right, left, softD, hardD, fall, hold;  // Controles flags
-Sint8 rotation; // Rotation flag
-
-bool holded, firstHold; // Hold flags
-bool firstDrop; // Drop flags
-bool lock_delay; // Lock delay flag
-Uint8 dropDelay; // Contador de delay hardD
-
-bool running; // Flag loop game
-bool restart; // Flag restart
-bool gameOver; // Flag game over
-
-// Variables de control de tiempo y frames
-float FPS;
-Uint64 countFrames; // Contador de frames
-Uint64 start_time, current_time, capTimer, frame_time, lock_timer; // Tiempos
-
-// Paths de assets
-char* blockPaths[] = {
-	"assets/blocks/L.png",
-	"assets/blocks/Z.png",
-	"assets/blocks/I.png",
-	"assets/blocks/J.png",
-	"assets/blocks/O.png",
-	"assets/blocks/S.png",
-	"assets/blocks/T.png",
-	"assets/blocks/ghost.png",
-	"assets/blocks/lock.png"
-};
-char* backgroundsPath[] = {
-	"assets/backgrounds/lvl1.png",
-	"assets/backgrounds/lvl2v2.png",
-	"assets/backgrounds/lvl3v2.png",
-	"assets/backgrounds/lvl4v2.png"
-};
 
 // Funcion que inicializa todo SDL y demas librerias usadas
 bool initSDL(SDL_Window **ptrWindow, SDL_Renderer **ptrRenderer) { 
@@ -546,19 +392,19 @@ void gameUpdate(Playfield *playfield, Tetromino *curr, Tetromino *next, Tetromin
 // Funcion que actualiza tablero tras eliminar piezas //TODO: MEJORAR ALGORITMO DE ORDENAMIENTO DE PLAYFIELD
 void playfieldUpdate(Playfield *playfield, int deletedLines) {
 	printf("deletedLines inicial: %d\n", deletedLines);
-	for (int princRow = BOARD_HEIGHT - 2; princRow > 0; princRow--) { //! MAAAAAL, ESTA RECORRIENDO TODO EL TABLERO, DEBERIA RECORRER HASTA QUE SE ACABE EL STACK NOMAIS
+	for (int princRow = BOARD_HEIGHT - 2; deletedLines > 0; --princRow) { //! MAAAAAL, ESTA RECORRIENDO TODO EL TABLERO, DEBERIA RECORRER HASTA QUE SE ACABE EL STACK NOMAIS
 		if (checkLineState(playfield, princRow) == 0) {
-			// deletedLines--;
+			deletedLines--;
 			int secRow = princRow - 1;
-			while (checkLineState(playfield, secRow) == 0) secRow--;
-			for (int column = 1; column < BOARD_WIDTH - 1; column++) {
+			while (checkLineState(playfield, secRow) == 0 && secRow > 0) --secRow;
+			for (int column = 1; column < BOARD_WIDTH - 1; ++column) {
 				playfield->matrix[princRow][column] = playfield->matrix[secRow][column];
 				playfield->matrix[secRow][column] = ' ';
 			}
-			// printf("deletedLines actual: %d\n", deletedLines);
+			printf("deletedLines actual: %d\n", deletedLines);
 		}
 	}
-	// printf("deletedLines final: %d\n", deletedLines);
+	printf("deletedLines final: %d\n", deletedLines);
 }
 
 // Funcion que asigna texturas a tetrominos
@@ -741,98 +587,4 @@ void QuitSDL(SDL_Window *window, SDL_Renderer *renderer, Playfield *playfield) {
 	SDL_DestroyRenderer(renderer);
 	SDL_DestroyWindow(window);
 	SDL_Quit();
-}
-
-//! MAIN ====================================================================================================================================
-int main(int argc, char *argv[]) {
-	srand(time(NULL));
-
-	SDL_Window* window;
-	SDL_Renderer* renderer;
-	if (!initSDL(&window, &renderer)) {
-		printf("Error inicializando SDL: %s\n", SDL_GetError());
-		SDL_Delay(3000);
-		return -1;
-	}
-
-//! DECLARAR Y INICIALIZAR *******************************************************************************************************
-	
-	Text* textFPS;
-	Text* textIntruc;
-
-	Playfield* playfield = malloc(sizeof(Playfield));
-	initPlayfield(playfield);
-
-	textFPS = initText("FPS: ", &upheavalFont, (SDL_Color){255,255,255,200}, 10, 1, 1);
-	textIntruc = initText("Press R to restart game", &upheavalFont, (SDL_Color){255,255,255,200}, 0, 1, 1);
-
-	loadBackgroundsTexture(renderer, backgrounds);
-	loadTetrominoesTexture(renderer);
-	gameboardExt = IMG_LoadTexture(renderer, "assets/gameboards/gameboardExt.png");
-	gameboardInt = IMG_LoadTexture(renderer, "assets/gameboards/gameboardInt.png");
-	loadTextTexture(renderer, textIntruc);
-	textIntruc->rect.x = SCREEN_WIDTH - textIntruc->rect.w - 5;
-
-	Tetromino curr = tetrominoes[rand()%7];
-	Tetromino next = tetrominoes[rand()%7];
-	Tetromino holder;
-
-
-//! GAME LOOP *********************************************************************************************************************
-	running = 1; // Flag de control de gameloop
-	start_time = SDL_GetTicks64(); // Tiempo en que se inicio gameloop
-
-	while (running) {
-		capTimer = SDL_GetTicks64(); // Tiempo de inicio de frame
-
-	//! INPUT ======================================================================================
-		gameInput(&curr, &next, playfield);
-
-		fall = fallSpeed(&countFrames, &curr);
-	//! LOGICA Y CAMBIOS ======================================================================================
-		gameUpdate(playfield, &curr, &next, &holder);
-		if (deletedLines > 0) playfieldUpdate(playfield, deletedLines);
-
-		// TODO: CONTAR PUNTAJE
-	//! RENDER ======================================================================================
-		// Cargar texto de FPS actuales
-		if (countFrames > 0) {
-			snprintf(textFPS->string + 5, 6,"%.1f", FPS);
-			loadTextTexture(renderer, textFPS); // Cargar textura de string con cantidad de FPS
-		}
-
-		SDL_RenderClear(renderer);
-		// Fondo ================================================================
-		renderBackground(renderer, backgrounds[currBackground], gameboardInt);
-		renderNextHold(renderer, &next, &holder);
-
-		// Texto ================================================================
-		if (countFrames > 0) renderText(renderer, textFPS);
-		renderText(renderer, textIntruc);
-
-		// Playfield ============================================================
-		renderPlayfield(renderer, playfield);
-		renderGhostTetromino(renderer, playfield, &curr);
-		renderTetromino(renderer, &curr);
-
-		// Interfaz superpuesta =================================================
-		SDL_RenderCopy(renderer, gameboardExt, NULL, NULL);
-        
-		SDL_RenderPresent(renderer);
-
-	//! CONTROL DE FRAMES Y TIEMPOS ======================================================================================
-		++countFrames; // Contar frames
-		frame_time = SDL_GetTicks64() - capTimer; // Tiempo de creacion de frame anterior
-		if (frame_time < 1000 / 60) SDL_Delay(1000 / 60 - frame_time);  // Esperar si el tiempo de creacion de frame fue menor a 1000/60 ticks, de manera de que el juego vaya a 60FPS
-		current_time = SDL_GetTicks64() - start_time; // Tiempo actual en juego
-		FPS = countFrames / (current_time / 1000.f); // Total de frames dividos por el tiempo total (seg) en juego = (FPS)
-	}
-
-//! CERRAR Y LIBERAR RECURSOS ****************************************************************************************************************************/
-
-	freeText(textIntruc);
-	freeText(textFPS);
-	QuitSDL(window, renderer, playfield);
-
-	return 0;
 }
