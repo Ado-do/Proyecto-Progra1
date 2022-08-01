@@ -12,19 +12,27 @@
 #include "Tetris_static.h"
 
 //! Declarar funciones
+//* Inicializar
 bool initSDL(SDL_Window **ptrWindow, SDL_Renderer **ptrRenderer);
 void initPlayfield(Playfield *playfield);
 Text* initText(const char *str, Font *font, const SDL_Color color, const int x, const int y, const float size);
-void loadTetrominoesTexture(SDL_Renderer *renderer);
+
+//* Cargar texturas
 void loadTetrominoesTexture(SDL_Renderer *renderer);
 void loadBackgroundsTexture(SDL_Renderer *renderer, SDL_Texture **backgrounds);
 void loadTextTexture(SDL_Renderer *renderer, Text *text);
+
+//* Funciones tablero
 void printPlayfield(Playfield *playfield);
-void playfieldUpdate(Playfield *playfield, Tetromino *curr, Tetromino *next);
+void updatePlayfield(Playfield *playfield, Tetromino *curr, Tetromino *next);
 void newTetromino(Tetromino *curr, Tetromino *next);
+
+//* Funciones game loop
 void gameInput(Tetromino *curr, Tetromino *next, Playfield *playfield);
 void gameUpdate(Playfield *playfield, Tetromino *curr, Tetromino *next, Tetromino *holder);
 bool gameOverCheck(Playfield *playfield, Tetromino *curr);
+
+//* Loyica de tetris
 int checkLineState(Playfield *playfield, Uint8 row);
 int deleteLines(Playfield *playfield);
 bool collision(Playfield *playfield, Tetromino *curr);
@@ -34,12 +42,16 @@ void rotateTetromino(Tetromino *tetro, const Sint8 sense);
 void hardDropTetromino(Playfield *playfield, Tetromino *curr, Tetromino *next);
 void softDropTetromino(Playfield *playfield, Tetromino *curr, Tetromino *next);
 bool checkFallTime(Uint64 countFrames);
+
+//* Renderizado
 void renderText(SDL_Renderer *renderer, Text *text);
 void renderBackground(SDL_Renderer *renderer, SDL_Texture *background, SDL_Texture *gameboardInt);
 void renderNextHold(SDL_Renderer *renderer, Tetromino *next, Tetromino *holder);
 void renderTetromino(SDL_Renderer *renderer, Tetromino *tetro);
 void renderGhostTetromino(SDL_Renderer *renderer, Playfield *playfield, Tetromino *curr);
 void renderPlayfield(SDL_Renderer *renderer, Playfield *playfield);
+
+//* Liberar y cerrar
 void freeText(Text *text);
 void QuitSDL(SDL_Window *window, SDL_Renderer *renderer, Playfield *playfield);
 
@@ -175,7 +187,7 @@ void printPlayfield(Playfield *playfield) {
 }
 
 // Funcion que actualiza tablero
-void playfieldUpdate(Playfield *playfield, Tetromino *curr, Tetromino *next) {
+void updatePlayfield(Playfield *playfield, Tetromino *curr, Tetromino *next) {
 	// Guardar caracteristicas de pieza dropeada
 	lastDropedRow = curr->y;
 	lastDropedSize = curr->size;

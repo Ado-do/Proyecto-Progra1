@@ -46,7 +46,7 @@ int main(int argc, char *argv[]) {
 		if(checkFallTime(countFrames)) fall = true;
 		gameUpdate(&playfield, &curr, &next, &holder);
 		if (droped) {
-			playfieldUpdate(&playfield, &curr, &next);
+			updatePlayfield(&playfield, &curr, &next);
 			droped = false;
 		}
 

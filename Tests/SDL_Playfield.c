@@ -374,7 +374,7 @@ void countStackHeight(Playfield *playfield) {
 }
 
 // Funcion que actualiza tablero
-void playfieldUpdate(Playfield *playfield, Tetromino *curr, Tetromino *next) {
+void updatePlayfield(Playfield *playfield, Tetromino *curr, Tetromino *next) {
 	// Guardar caracteristicas de pieza dropeada
 	lastDropedRow = curr->y;
 	lastDropedSize = curr->size;
@@ -829,7 +829,7 @@ int main(int argc, char *argv[]) {
 		if(checkFallTime(countFrames)) fall = true;
 		gameUpdate(playfield, &curr, &next, &holder);
 		if (droped) {
-			playfieldUpdate(playfield, &curr, &next);
+			updatePlayfield(playfield, &curr, &next);
 			droped = false;
 		}
 
