@@ -8,8 +8,6 @@
 int main(int argc, char *argv[]) {
 	srand(time(NULL));
 
-	SDL_Window* window;
-	SDL_Renderer* renderer;
 	if (!initSDL(&window, &renderer)) {
 		printf("Error inicializando SDL: %s\n", SDL_GetError());
 		SDL_Delay(3000);
@@ -17,12 +15,9 @@ int main(int argc, char *argv[]) {
 	}
 
 //! DECLARAR Y INICIALIZAR *******************************************************************************************************
-	
-	Text* textFPS;
-	Text* textIntruc;
 
-	Playfield* playfield = malloc(sizeof(Playfield));
-	initPlayfield(playfield);
+	Playfield playfield;
+	initPlayfield(&playfield);
 
 	textFPS = initText("FPS: ", &upheavalFont, (SDL_Color){255,255,255,200}, 10, 1, 1);
 	textIntruc = initText("Press R to restart game", &upheavalFont, (SDL_Color){255,255,255,200}, 0, 1, 1);
@@ -47,12 +42,12 @@ int main(int argc, char *argv[]) {
 		capTimer = SDL_GetTicks64(); // Tiempo de inicio de frame
 
 	//! INPUT ======================================================================================
-		gameInput(&curr, &next, playfield);
+		gameInput(&curr, &next, &playfield);
 
 		fall = fallSpeed(&countFrames, &curr);
 	//! LOGICA Y CAMBIOS ======================================================================================
-		gameUpdate(playfield, &curr, &next, &holder);
-		if (deletedLines > 0) playfieldUpdate(playfield, deletedLines);
+		gameUpdate(&playfield, &curr, &next, &holder);
+		if (deletedLines > 0) playfieldUpdate(&playfield, deletedLines);
 
 		// TODO: CONTAR PUNTAJE
 	//! RENDER ======================================================================================
@@ -72,8 +67,8 @@ int main(int argc, char *argv[]) {
 		renderText(renderer, textIntruc);
 
 		// Playfield ============================================================
-		renderPlayfield(renderer, playfield);
-		renderGhostTetromino(renderer, playfield, &curr);
+		renderPlayfield(renderer, &playfield);
+		renderGhostTetromino(renderer, &playfield, &curr);
 		renderTetromino(renderer, &curr);
 
 		// Interfaz superpuesta =================================================
@@ -93,7 +88,7 @@ int main(int argc, char *argv[]) {
 
 	freeText(textIntruc);
 	freeText(textFPS);
-	QuitSDL(window, renderer, playfield);
+	QuitSDL(window, renderer, &playfield);
 
 	return 0;
 }

@@ -22,7 +22,7 @@
 enum sense {COUNTER_CLOCKWISE = -1, CLOCKWISE = 1, DOUBLE_CLOCKWISE = 2};
 
 //! Estructuras !//
-//* Estructuras de texto
+
 typedef struct Texto {
 	char string[100]; // String del texto
 	TTF_Font* font; // Font del texto
@@ -30,38 +30,32 @@ typedef struct Texto {
 	SDL_Texture* texture; // Textura del texto
 	SDL_Rect rect; // Rect del texto (donde se renderiza el texto en pantalla)
 	float size; // Escala del texto
-} Text;
+} Text;		//* Estructuras de texto
 
-//* Estructura de Fonts
 typedef struct Fuentes {
 	char* path; // Path del font
 	Uint8 size; // Tamaño del font (Escala fija)
-} Font;
+} Font;		//* Estructura de Fonts
 
-//* Estructura de piezas
 typedef struct Piezas {
 	char shape; // Forma
 	Uint8 nShape; // Numero de pieza
 	Uint8 size; // Tamaño
-	SDL_Texture* color; // Color de pieza
 	bool matrix[4][4]; // Matriz representante
 	Sint8 x, y; // Posicion en tablero
 	SDL_Rect rects[4]; // Posicion y tamaño en pantalla
-} Tetromino;
+} Tetromino;	//* Estructura de piezas
 
-//* Estructura de tablero
 typedef struct Tablero {
 	char matrix[BOARD_HEIGHT][BOARD_WIDTH]; // 24x12 (Total con los bordes y lineas superiores)
-} Playfield;
+} Playfield;	//* Estructura de tablero
 
-//* Estructura que contiene datos de sesion actual
 typedef struct Tetris {
     Playfield playfield;
     Tetromino curr;
 	Tetromino next;
     Tetromino holder;
-    SDL_Texture* fondos[10];
-} Tetris;
+} Tetris;	//* Estructura que contiene datos de sesion actual
 
 //! Estructuras inicializadas !//
 //* Fuentes utilizadas
@@ -70,49 +64,49 @@ Font upheavalFont = {"assets/fonts/upheaval.ttf", 20};
 //* Arreglo de piezas
 Tetromino tetrominoes[7] = { 
 	// L BLOCK
-	{'L', 0, 3, NULL,
+	{'L', 0, 3,
 	{{0,0,1,0} 
 	,{1,1,1,0}
 	,{0,0,0,0}
 	,{0,0,0,0}},
 	INITIAL_X, INITIAL_Y},
 	// Z BLOCK
-	{'Z', 1, 3, NULL,
+	{'Z', 1, 3,
 	{{1,1,0,0}
 	,{0,1,1,0}
 	,{0,0,0,0}
 	,{0,0,0,0}},
 	INITIAL_X, INITIAL_Y},
 	// I BLOCK
-	{'I', 2, 4, NULL,
+	{'I', 2, 4,
 	{{0,0,0,0}
 	,{1,1,1,1}
 	,{0,0,0,0}
 	,{0,0,0,0}},
 	INITIAL_X, INITIAL_Y},
 	// J BLOCK
-	{'J', 3, 3, NULL,
+	{'J', 3, 3,
 	{{1,0,0,0}
 	,{1,1,1,0}
 	,{0,0,0,0}
 	,{0,0,0,0}},
 	INITIAL_X, INITIAL_Y},
 	// O BLOCK
-	{'O', 4, 2, NULL,
+	{'O', 4, 2,
 	{{1,1,0,0}
 	,{1,1,0,0}
 	,{0,0,0,0}
 	,{0,0,0,0}},
 	INITIAL_X + 1, INITIAL_Y},
 	// S BLOCK
-	{'S', 5, 3, NULL,
+	{'S', 5, 3,
 	{{0,1,1,0}
 	,{1,1,0,0}
 	,{0,0,0,0}
 	,{0,0,0,0}},
 	INITIAL_X, INITIAL_Y},
 	// T BLOCK
-	{'T', 6, 3, NULL,
+	{'T', 6, 3,
 	{{0,1,0,0}
 	,{1,1,1,0}
 	,{0,0,0,0}
@@ -120,17 +114,18 @@ Tetromino tetrominoes[7] = {
 	INITIAL_X, INITIAL_Y}
 };
 
+Text* textFPS;
+Text* textIntruc;
+
 //! Variables globales ======================================================
-//* Variables SDL globales
+//* Variables SDL
 SDL_Window* window;
 SDL_Renderer* renderer;
-SDL_Texture* fondo;
-SDL_Texture* gameboard;
 
 //* Texturas globales
-SDL_Texture *ghostTexture, *lockTexture;
 SDL_Texture *gameboardInt, *gameboardExt;
-SDL_Texture* backgrounds[4];
+SDL_Texture *blockColors[7], *ghostBlock, *lockBlock;
+SDL_Texture *backgrounds[4];
 
 //* Flags y contadores (se inicializan en 0)
 Uint8 currBackground; // Indice de background actual
@@ -149,12 +144,12 @@ bool running; // Flag loop game
 bool restart; // Flag restart
 bool gameOver; // Flag game over
 
-// Variables de control de tiempo y frames
+//* Variables de control de tiempo y frames
 float FPS;
 Uint64 countFrames; // Contador de frames
 Uint64 start_time, current_time, capTimer, frame_time, lock_timer; // Tiempos
 
-// Paths de assets
+//* Paths de assets
 char* blockPaths[] = {
 	"assets/blocks/L.png",
 	"assets/blocks/Z.png",

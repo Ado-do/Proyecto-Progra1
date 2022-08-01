@@ -1,7 +1,5 @@
 #pragma once
 
-#include "Tetris_static.h"
-
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
 #include <SDL2/SDL_ttf.h>
@@ -10,6 +8,8 @@
 #include <string.h>
 #include <stdbool.h>
 #include <time.h>
+
+#include "Tetris_static.h"
 
 // Funcion que inicializa todo SDL y demas librerias usadas
 bool initSDL(SDL_Window **ptrWindow, SDL_Renderer **ptrRenderer) { 
@@ -391,37 +391,32 @@ void gameUpdate(Playfield *playfield, Tetromino *curr, Tetromino *next, Tetromin
 
 // Funcion que actualiza tablero tras eliminar piezas //TODO: MEJORAR ALGORITMO DE ORDENAMIENTO DE PLAYFIELD
 void playfieldUpdate(Playfield *playfield, int deletedLines) {
-	printf("deletedLines inicial: %d\n", deletedLines);
 	for (int princRow = BOARD_HEIGHT - 2; deletedLines > 0; --princRow) { //! MAAAAAL, ESTA RECORRIENDO TODO EL TABLERO, DEBERIA RECORRER HASTA QUE SE ACABE EL STACK NOMAIS
 		if (checkLineState(playfield, princRow) == 0) {
-			deletedLines--;
+			deletedLines = deletedLines - 1;
 			int secRow = princRow - 1;
 			while (checkLineState(playfield, secRow) == 0 && secRow > 0) --secRow;
 			for (int column = 1; column < BOARD_WIDTH - 1; ++column) {
 				playfield->matrix[princRow][column] = playfield->matrix[secRow][column];
 				playfield->matrix[secRow][column] = ' ';
 			}
-			printf("deletedLines actual: %d\n", deletedLines);
 		}
 	}
-	printf("deletedLines final: %d\n", deletedLines);
 }
 
 // Funcion que asigna texturas a tetrominos
 void loadTetrominoesTexture(SDL_Renderer *renderer) {
 	// Asignar texturas
-	for (int shape = 0; shape < 9; shape++) {
-		tetrominoes[shape].color = IMG_LoadTexture(renderer, blockPaths[shape]);
-		if (shape == 7) ghostTexture = IMG_LoadTexture(renderer, blockPaths[shape]);
-		if (shape == 8) lockTexture = IMG_LoadTexture(renderer, blockPaths[shape]);
+	for (int nShape = 0; nShape < 9; nShape++) {
+		blockColors[nShape] = IMG_LoadTexture(renderer, blockPaths[nShape]);
+		if (nShape == 7) ghostBlock = IMG_LoadTexture(renderer, blockPaths[nShape]);
+		if (nShape == 8) lockBlock = IMG_LoadTexture(renderer, blockPaths[nShape]);
 	}
 }
 
 // Cargar fondos
 void loadBackgroundsTexture(SDL_Renderer *renderer, SDL_Texture **backgrounds) {
-	for (int i = 0; i < 4; i++) {
-		backgrounds[i] = IMG_LoadTexture(renderer, backgroundsPath[i]);
-	}
+	for (int i = 0; i < 4; i++) backgrounds[i] = IMG_LoadTexture(renderer, backgroundsPath[i]);
 }
 
 // Funcion que carga textura de texto
@@ -465,7 +460,7 @@ void renderNextHold(SDL_Renderer *renderer, Tetromino *next, Tetromino *holder) 
 				next->rects[currRectNext].w = next->rects[currRectNext].h = TILE_SIZE + 1;
 				next->rects[currRectNext].x = (j * (TILE_SIZE + 1)) + nextX;
 				next->rects[currRectNext].y = (i * (TILE_SIZE + 1)) + nextY;
-				SDL_RenderCopy(renderer, next->color, NULL, &next->rects[currRectNext]);
+				SDL_RenderCopy(renderer, blockColors[next->nShape], NULL, &next->rects[currRectNext]);
 				currRectNext++;
 			}
 		}
@@ -482,8 +477,8 @@ void renderNextHold(SDL_Renderer *renderer, Tetromino *next, Tetromino *holder) 
 					holder->rects[currRectHolder].w = holder->rects[currRectHolder].h = TILE_SIZE + 1;
 					holder->rects[currRectHolder].x = (j * (TILE_SIZE + 1)) + holderX;
 					holder->rects[currRectHolder].y = (i * (TILE_SIZE + 1)) + holderY;
-					if (holded) SDL_RenderCopy(renderer, lockTexture, NULL, &holder->rects[currRectHolder]);
-					else SDL_RenderCopy(renderer, holder->color, NULL, &holder->rects[currRectHolder]);
+					if (holded) SDL_RenderCopy(renderer, lockBlock, NULL, &holder->rects[currRectHolder]);
+					else SDL_RenderCopy(renderer, blockColors[holder->nShape], NULL, &holder->rects[currRectHolder]);
 					currRectHolder++;
 				}
 			}
@@ -496,11 +491,11 @@ void renderTetromino(SDL_Renderer *renderer, Tetromino *tetro) {
 	for(int i = 0; i < tetro->size; i++) {
 		for(int j = 0; j < tetro->size; j++) {
 			if(tetro->matrix[i][j]) {
-				tetro->rects[currRect].w = tetro->rects[currRect].h = TILE_SIZE;
 				// tetro->rects[currRect].w = tetro->rects[currRect].h = TILE_SIZE + 1;
+				tetro->rects[currRect].w = tetro->rects[currRect].h = TILE_SIZE;
 				tetro->rects[currRect].x = ((tetro->x - 1 + j) * (TILE_SIZE + 1)) + BOARD_X_ORIGIN;
 				tetro->rects[currRect].y = ((tetro->y + i) * (TILE_SIZE + 1)) + BOARD_Y_ORIGIN;
-				SDL_RenderCopy(renderer, tetro->color, NULL, &tetro->rects[currRect]);
+				SDL_RenderCopy(renderer, blockColors[tetro->nShape], NULL, &tetro->rects[currRect]); //! CAMBIAR TEXTURAS
 				currRect++;
 			}
 		}
@@ -520,7 +515,7 @@ void renderGhostTetromino(SDL_Renderer *renderer, Playfield *playfield, Tetromin
 						currGhost.rects[currRect].w = currGhost.rects[currRect].h = TILE_SIZE;
 						currGhost.rects[currRect].x = ((currGhost.x - 1 + j) * (TILE_SIZE + 1)) + BOARD_X_ORIGIN;
 						currGhost.rects[currRect].y = ((currGhost.y + i) * (TILE_SIZE + 1)) + BOARD_Y_ORIGIN;
-						SDL_RenderCopy(renderer, ghostTexture, NULL, &currGhost.rects[currRect]);
+						SDL_RenderCopy(renderer, ghostBlock, NULL, &currGhost.rects[currRect]);
 						currRect++;
 					}
 				}
@@ -549,7 +544,7 @@ void renderPlayfield(SDL_Renderer *renderer, Playfield *playfield) {
 					case 'T': nColor = 6; break;
 					default: break;
 				}
-				if (SDL_RenderCopy(renderer, tetrominoes[nColor].color, NULL, &tmpRect) < 0) {
+				if (SDL_RenderCopy(renderer, blockColors[nColor], NULL, &tmpRect) < 0) {
 					printf("ERROR RENDER PLAYFIELD: %s\n", SDL_GetError());
 				}
 			}

@@ -26,6 +26,7 @@
 // * DIMENSIONES PLAYFIELD W= 381 H= 839
 
 enum sense {COUNTER_CLOCKWISE = -1, CLOCKWISE = 1, DOUBLE_CLOCKWISE = 2};
+enum shapes {L, Z, I, J, O, S, T};
 
 // Estructuras de texto
 typedef struct Texto {
