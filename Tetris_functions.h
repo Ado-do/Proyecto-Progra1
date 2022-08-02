@@ -30,15 +30,23 @@ void tetrisGameScreen(Playfield *playfield, Tetromino *curr, Tetromino *next, Te
 	// Actualizar playfield y si una pieza cayo en stack
 	if (droped) {
 		updatePlayfield(playfield, curr, next);
+		calculateScore(clearedLines);
+
+		printf("Level %d (caida cada %.2f (%ld) frames)\n", level, difficulty, lroundf(difficulty)); //? Test lvls
+		printf("Score: %d, Combo: %d\n", score, combo); //? Test score
+
 		droped = false;
 	}
-	// Si se limpiaron lineas, calcular score y dificultad
-	if (clearedLines > 0) {
-		calculateScore(clearedLines);
-		if (nextLevel) {
-			difficulty = calculateDifficulty(level);
-			if (currBackground < 3) currBackground++;
-			else currBackground = 0;
+	if (gameOver) {
+		updateTextTexture(renderer, textRecord, score);
+	}
+	
+	if (nextLevel) {
+		difficulty = calculateDifficulty(level);
+		if (currBackground < 3) {
+			currBackground++;
+		} else {
+			currBackground = 0;
 		}
 	}
 	
@@ -88,7 +96,7 @@ void tetrisGameScreen(Playfield *playfield, Tetromino *curr, Tetromino *next, Te
 	//* Mostrar textura en pantalla
 	SDL_RenderPresent(renderer);
 }
-// Game Over
+// Pantalla game Over
 void gameOverScreen() {
 	while (SDL_PollEvent(&events)) {
 		if(events.type == SDL_QUIT) {
@@ -235,17 +243,18 @@ void updatePlayfield(Playfield *playfield, Tetromino *curr, Tetromino *next) {
 			}
 		}
 	}
-	printPlayfield(playfield); //? Imprimir matrix actual
-	printf("lastDropedRow: %d, lastDropedSize: %d!!!!!!!!!!\n", curr->y, curr->size); //? Test de drops
-	printf("Level %d (caida cada %.2f (%ld) frames)\n", level, difficulty, lroundf(difficulty)); //? Test lvls
+
 	countStackHeight(playfield); // Comprobar altura del Stack
 
-	if (firstThreeDrops >= 3) clearedLines = (deleteLines(playfield));
+	if (firstThreeDrops >= 3) clearedLines = deleteLines(playfield);
 	totalLines += clearedLines;
 
-	if (lastStackRow <= 5) gameOver = gameOverCheck(playfield, curr);
+	if (lastStackRow <= 5) gameOver = checkGameOver(playfield, curr);
 
 	if (!gameOver) newTetromino(curr, next);
+
+	printPlayfield(playfield); //? Imprimir matrix actual
+	printf("lastDropedRow: %d, lastDropedSize: %d!!!!!!!!!!\n", curr->y, curr->size); //? Test de drops
 }
 
 // Funcion que inicializa todo SDL y demas librerias usadas
@@ -395,10 +404,10 @@ void updateTextTexture(SDL_Renderer *renderer, Text *text, int number) {
 	int i; // Indice en text->string
 	// Busca el primer numero en la string
 	for (i = 0; i < strlen(text->string); i++) {
-		if (isdigit(text->string[i]) < 0) break;
+		if (isdigit(text->string[i]) != 0) break;
 	}
 	// Cambiar string
-	snprintf(text->string + i-1, 5,"%d", number);
+	snprintf(text->string + i, 5,"%d", number);
 	// Actualizar texture
 	loadTextTexture(renderer, text);
 }
@@ -437,7 +446,7 @@ void newTetromino(Tetromino *curr, Tetromino *next) {
 }
 
 // Funcion que revisa si el jugador perdio //TODO: MEJORAR DETECCION DE GAMEOVER
-bool gameOverCheck(Playfield *playfield, Tetromino *curr) {
+bool checkGameOver(Playfield *playfield, Tetromino *curr) {
 	bool gameOver = false;
 	// Contar bloques de la pieza encima del tablero, si los 4 estan arriba, pierdes
 	int countBlocks = 0;
@@ -618,12 +627,13 @@ bool checkFallTime(Uint64 totalFrames) {
 void calculateScore(int linesCleared) {
 	// Calcular score segun cantida de lineas limpiadas al mismo tiempo //TODO: AGREGAR CASOS ESPECIALES EJ: Tspins
 	switch(linesCleared) {
-		case 1: {score += 80   * (level + combo); break;} // Single
-		case 2: {score += 200  * (level + combo); break;} // Double
-		case 3: {score += 600  * (level + combo); break;} // Triple
-		case 4: {score += 2400 * (level + combo); break;} // Tetris
+		case 1: {score += 100  * (level + combo); break;} // Single
+		case 2: {score += 300  * (level + combo); break;} // Double
+		case 3: {score += 500  * (level + combo); break;} // Triple
+		case 4: {score += 1000 * (level + combo); break;} // Tetris
 		//TODO TSPINS
 		//TODO FULL CLEAR
+		default: break;
 	}
 
 	if (linesCleared > 0) combo++;

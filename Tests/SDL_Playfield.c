@@ -283,7 +283,7 @@ int deleteLines(Playfield *playfield) {
 }
 
 // Funcion que revisa si el jugador perdio //TODO: MEJORAR DETECCION DE GAMEOVER
-bool gameOverCheck(Playfield *playfield, Tetromino *curr) {
+bool checkGameOver(Playfield *playfield, Tetromino *curr) {
 	bool gameOver = false;
 	// Contar bloques de la pieza encima del tablero, si los 4 estan arriba, pierdes
 	int countBlocks = 0;
@@ -393,7 +393,7 @@ void updatePlayfield(Playfield *playfield, Tetromino *curr, Tetromino *next) {
 
 	//TODO: UTILIZAR DELETEDFILES PARA CONTAR FILAS HECHAS Y AÑADIR DIFICULTAD
 	if (firstThreeDrops >= 3) deletedLines = deleteLines(playfield);
-	if (lastStackRow <= 5) gameOverCheck(playfield, curr);
+	if (lastStackRow <= 5) checkGameOver(playfield, curr);
 
 	newTetromino(curr, next);
 }

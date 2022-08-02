@@ -226,7 +226,7 @@ void tetrisGameScreen(Playfield *playfield, Tetromino *curr, Tetromino *next, Te
 
 void gameInput(Tetromino *curr, Tetromino *next, Playfield *playfield);
 void gameUpdate(Playfield *playfield, Tetromino *curr, Tetromino *next, Tetromino *holder);
-bool gameOverCheck(Playfield *playfield, Tetromino *curr);
+bool checkGameOver(Playfield *playfield, Tetromino *curr);
 
 void gameOverScreen();
 
