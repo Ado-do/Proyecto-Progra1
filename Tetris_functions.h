@@ -94,14 +94,14 @@ void tetrisLoop(Playfield *playfield, Tetromino *curr, Tetromino *next, Tetromin
 		snprintf(textLines->string + 7, 4,"%d", totalLines);
 		loadTextTexture(renderer, textLines);
 		// Actualizar texto score
-		snprintf(textScore->string + 7, 5,"%lld", score);
+		snprintf(textScore->string + 7, 5,"%ld", score);
 		loadTextTexture(renderer, textScore); 
 		clearedLines = 0;
 	}
 
 	if (levelUp) {
 		// Actualizar texto nivel
-		snprintf(textLevel->string + 7, 2,"%d", level);
+		snprintf(textLevel->string + 7, 4,"%d", level);
 		loadTextTexture(renderer, textLevel);
 		levelUp = false;
 	}

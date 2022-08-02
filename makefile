@@ -13,7 +13,7 @@ EXEC := tetris.exe
 
 # Library Flags
 # LIBS := -lSDL2main -lSDL2 -lSDL2_image -lSDL2_ttf -lm -lmingw32
-LIBS := -lSDL2main -lSDL2 -lSDL2_image -lSDL2_mixer -lSDL2_ttf -lmingw32
+LIBS := -lSDL2main -lSDL2 -lSDL2_image -lSDL2_mixer -lSDL2_ttf -lmingw32 -lm
 
 # Distribution
 DIST_NAME := SDL2-tetris-windows
@@ -26,7 +26,7 @@ else # Linux
 SDL_DEVELOPMENT_INC := /usr/include/SDL2
 
 # LIBS := `sdl2-config --libs --cflags` -lSDL2main -lSDL2 -lSDL2_image -lSDL2_mixer -lSDL2_ttf
-LIBS := $(shell sdl-config --libs) -lSDL2main -lSDL2 -lSDL2_image -lSDL2_ttf
+LIBS := $(shell sdl-config --libs) -lSDL2main -lSDL2 -lSDL2_image -lSDL2_ttf -lm
 # SDL_LDFLAGS := $(shell sdl-config --libs)
 
 CFLAGS := $(shell sdl-config --cflags) -ggdb3 -O0 --std=c99 -Wall
