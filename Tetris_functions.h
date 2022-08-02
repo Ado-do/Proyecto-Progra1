@@ -12,83 +12,38 @@
 
 #include "Tetris_static.h"
 
-//! Declarar funciones
-
-//* Inicializar
-bool initSDL(SDL_Window **ptrWindow, SDL_Renderer **ptrRenderer);
-void initPlayfield(Playfield *playfield);
-Text* initText(const char *str, Font *font, const SDL_Color color, const int x, const int y, const float size);
-
-//* Cargar texturas
-void loadTetrominoesTexture(SDL_Renderer *renderer);
-void loadBackgroundsTexture(SDL_Renderer *renderer, SDL_Texture **backgrounds);
-void loadGameOverTexture(SDL_Renderer *renderer, SDL_Texture **gameover);
-void loadTextTexture(SDL_Renderer *renderer, Text *text);
-
-//* Funciones tablero
-void printPlayfield(Playfield *playfield);
-void updatePlayfield(Playfield *playfield, Tetromino *curr, Tetromino *next);
-void newTetromino(Tetromino *curr, Tetromino *next);
-
-//* Funciones game loop
-void tetrisLoop(Playfield *playfield, Tetromino *curr, Tetromino *next, Tetromino *holder);
-
-void gameInput(Tetromino *curr, Tetromino *next, Playfield *playfield);
-void gameUpdate(Playfield *playfield, Tetromino *curr, Tetromino *next, Tetromino *holder);
-bool gameOverCheck(Playfield *playfield, Tetromino *curr);
-
-//* Loyica de tetris
-int checkLineState(Playfield *playfield, Uint8 row);
-int deleteLines(Playfield *playfield);
-bool collision(Playfield *playfield, Tetromino *curr);
-void countStackHeight(Playfield *playfield);
-void wallKickFRUNA(Playfield *playfield, Tetromino *curr, Sint8 rotation);
-void rotateTetromino(Tetromino *tetro, const Sint8 sense);
-void hardDropTetromino(Playfield *playfield, Tetromino *curr, Tetromino *next);
-void softDropTetromino(Playfield *playfield, Tetromino *curr, Tetromino *next);
-bool checkFallTime(Uint64 countFrames);
-void calculateScore(int linesCleared);
-void calculateDifficulty(int level) ;
-
-//* Renderizado
-void renderText(SDL_Renderer *renderer, Text *text);
-void renderBackground(SDL_Renderer *renderer, SDL_Texture *background, SDL_Texture *gameboardInt);
-void renderGameOver(SDL_Renderer *renderer, SDL_Texture **gameOverTextures, Text *textRecord);
-void renderNextHold(SDL_Renderer *renderer, Tetromino *next, Tetromino *holder);
-void renderTetromino(SDL_Renderer *renderer, Tetromino *tetro);
-void renderGhostTetromino(SDL_Renderer *renderer, Playfield *playfield, Tetromino *curr);
-void renderPlayfield(SDL_Renderer *renderer, Playfield *playfield);
-
-//* Liberar y cerrar
-void freeText(Text *text);
-void QuitSDL(SDL_Window *window, SDL_Renderer *renderer);
-
-
 //! Definir funciones principales
 
-void tetrisLoop(Playfield *playfield, Tetromino *curr, Tetromino *next, Tetromino *holder) {
-//! INPUT ======================================================================================
+// In game
+void tetrisGameScreen(Playfield *playfield, Tetromino *curr, Tetromino *next, Tetromino *holder) {
+	//! INPUT ======================================================================================
 	gameInput(curr, next, playfield);
 
-//! LOGICA Y CAMBIOS ======================================================================================
+	//! LOGICA Y CAMBIOS ======================================================================================
+	// Comprobar si corresponde bajar
+	if (checkFallTime(totalFrames)) fall = true;
 
-	if(checkFallTime(countFrames)) fall = true;
-
+	// Aplicar logica y fisicas
 	gameUpdate(playfield, curr, next, holder);
 
+	// Actualizar playfield y si una pieza cayo en stack
 	if (droped) {
 		updatePlayfield(playfield, curr, next);
 		droped = false;
 	}
-
+	// Si se limpiaron lineas, calcular score y dificultad
 	if (clearedLines > 0) {
 		calculateScore(clearedLines);
-		if (levelUp) {
-			calculateDifficulty(level);
+		if (nextLevel) {
+			difficulty = calculateDifficulty(level);
+			if (currBackground < 3) currBackground++;
+			else currBackground = 0;
 		}
 	}
 	
 //! RENDER ======================================================================================
+	//* Cargar texturas en caso de actualizar
+	// Si se limpiaron lineas, actualizar texto de score y texto
 	if (clearedLines > 0) {
 		// Actualizar texto lineas 
 		snprintf(textLines->string + 7, 4,"%d", totalLines);
@@ -98,31 +53,30 @@ void tetrisLoop(Playfield *playfield, Tetromino *curr, Tetromino *next, Tetromin
 		loadTextTexture(renderer, textScore); 
 		clearedLines = 0;
 	}
-
-	if (levelUp) {
+	// Si se paso el nivel, actualizar texto de niveles
+	if (nextLevel) {
 		// Actualizar texto nivel
-		snprintf(textLevel->string + 7, 2,"%d", level);
+		snprintf(textLevel->string + 7, 3,"%d", level);
 		loadTextTexture(renderer, textLevel);
-		levelUp = false;
+		nextLevel = false;
 	}
 
-	// Cargar texto de FPS actuales
-	if (countFrames > 0 && countFrames % 20) {
-		snprintf(textFPS->string + 5, 6,"%.1f", FPS);
-		loadTextTexture(renderer, textFPS); // Cargar textura de string con cantidad de FPS
-	}
-
+	//* Limpiar anterior frame
 	SDL_RenderClear(renderer);
+
+	//* Precargar texturas en render
 	// Fondo ================================================================
 	renderBackground(renderer, backgrounds[currBackground], gameboardInt);
 	renderNextHold(renderer, next, holder);
 
 	// Texto ================================================================
-	if (countFrames > 0) renderText(renderer, textFPS);
+	// Renderizar texto fps
+	renderFPS(renderer, textFPS);
 
 	renderText(renderer, textScore);
 	renderText(renderer, textLines);
 	renderText(renderer, textLevel);
+
 	renderText(renderer, textIntruc);
 
 	// Playfield ============================================================
@@ -132,45 +86,63 @@ void tetrisLoop(Playfield *playfield, Tetromino *curr, Tetromino *next, Tetromin
 
 	// Interfaz superpuesta =================================================
 	SDL_RenderCopy(renderer, gameboardExt, NULL, NULL);
+
+	//* Mostrar textura en pantalla
 	SDL_RenderPresent(renderer);
-
 }
-
-
-// Funcion que recibe el input del juego //TODO: Cambiar running -> gameover
-void gameInput(Tetromino *curr, Tetromino *next, Playfield *playfield) {
-	SDL_Event e;
-	while(SDL_PollEvent(&e)) {
-		if(e.type == SDL_QUIT) {
+// Game Over
+void gameOverScreen() {
+	while (SDL_PollEvent(&events)) {
+		if(events.type == SDL_QUIT) {
 			running = false;
 			break;
 		}
-		if (e.type == SDL_KEYDOWN) {
-			switch (e.key.keysym.sym) {
+		if (events.type == SDL_KEYDOWN) {
+			if (events.key.keysym.sym == SDLK_ESCAPE) {
+				running = false;
+				break;
+			}
+		}
+	}
+	renderGameOver(renderer, gameOverTextures, textRecord);
+}
+
+//! Definir funciones secundarias
+
+// Funcion que recibe el input del juego //TODO: Cambiar running -> gameover
+void gameInput(Tetromino *curr, Tetromino *next, Playfield *playfield) {
+
+	while(SDL_PollEvent(&events)) {
+		if(events.type == SDL_QUIT) {
+			running = false;
+			break;
+		}
+		if (events.type == SDL_KEYDOWN) {
+			switch (events.key.keysym.sym) {
 				case SDLK_UP:
-					if (!e.key.repeat) rotation = COUNTER_CLOCKWISE;
+					if (!events.key.repeat) rotation = COUNTER_CLOCKWISE;
 					break;
 				case SDLK_DOWN:		softD = true; break;
 				case SDLK_RIGHT:	right = true; break;
 				case SDLK_LEFT:		left = true; break;
 				case SDLK_z:
-					if (!e.key.repeat) rotation = COUNTER_CLOCKWISE;
+					if (!events.key.repeat) rotation = COUNTER_CLOCKWISE;
 					break;
 				case SDLK_x:
-					if (!e.key.repeat) rotation = CLOCKWISE;
+					if (!events.key.repeat) rotation = CLOCKWISE;
 					break;
 				case SDLK_a:
-					if (!e.key.repeat) rotation = DOUBLE_CLOCKWISE;
+					if (!events.key.repeat) rotation = DOUBLE_CLOCKWISE;
 					break;
 				case SDLK_c: hold = true; break;
 				case SDLK_SPACE:
-					if (!e.key.repeat) hardD = true;
+					if (!events.key.repeat) hardD = true;
 					break;
 				case SDLK_r:
-					if (!e.key.repeat) restart = true;
+					if (!events.key.repeat) restart = true;
 					break;
-				case SDLK_ESCAPE:	running = false; break;
-									// gameOver = true; break;
+				case SDLK_ESCAPE: 	gameOver = true; break;
+									// running = false; break;
 				default: break;
 			}
 		}
@@ -232,10 +204,10 @@ void gameUpdate(Playfield *playfield, Tetromino *curr, Tetromino *next, Tetromin
 		if (collision(playfield, curr)) {
 			curr->y--;
 			if (!lock_delayFRUNA) {
-				lock_timer = countFrames + 30;
+				lock_timer = totalFrames + 30;
 				lock_delayFRUNA = true;
 			} else {
-				if (countFrames > lock_timer) {
+				if (totalFrames > lock_timer) {
 					lock_delayFRUNA = false;
 					droped = true;
 				}
@@ -251,44 +223,70 @@ void gameUpdate(Playfield *playfield, Tetromino *curr, Tetromino *next, Tetromin
 	}
 }
 
+// Funcion que actualiza tablero
+void updatePlayfield(Playfield *playfield, Tetromino *curr, Tetromino *next) {
+	// Guardar caracteristicas de ultima pieza dropeada
+	lastDropedRow = curr->y;
+	lastDropedSize = curr->size;
+
+	// Ingresar pieza actual al stack
+	for (int i = 0; i < curr->size; i++) {
+		for (int j = 0; j < curr->size; j++) {
+			if (curr->matrix[i][j]) {
+				playfield->matrix[i + curr->y][j + curr->x] = curr->shape;
+			}
+		}
+	}
+	printPlayfield(playfield); //? Imprimir matrix actual
+	printf("lastDropedRow: %d, lastDropedSize: %d!!!!!!!!!!\n", curr->y, curr->size); //? Test de drops
+	printf("Level %d (caida cada %.2f (%ld) frames)\n", level, difficulty, lroundf(difficulty)); //? Test lvls
+	countStackHeight(playfield); // Comprobar altura del Stack
+
+	if (firstThreeDrops >= 3) clearedLines = (deleteLines(playfield));
+	totalLines += clearedLines;
+
+	if (lastStackRow <= 5) gameOver = gameOverCheck(playfield, curr);
+
+	if (!gameOver) newTetromino(curr, next);
+}
 
 // Funcion que inicializa todo SDL y demas librerias usadas
 bool initSDL(SDL_Window **ptrWindow, SDL_Renderer **ptrRenderer) { 
 	// Inicializar toda la biblioteca de SDL
 	if (SDL_Init(SDL_INIT_EVERYTHING) < 0) {
-		printf("Error initializing SDL2: %s\n", SDL_GetError());
+		printf("*** Error initializing SDL2: %s\n", SDL_GetError());
 		return 0;
 	}
 	// Inicializar SDL_TTF
 	if (TTF_Init() == -1) {
-		printf("Error initializing SDL_TTF: %s\n", TTF_GetError());
+		printf("*** Error initializing SDL_TTF: %s\n", TTF_GetError());
 		return 0;
 	}
 	// Inicializar SDL_image
 	if (IMG_Init(IMG_INIT_PNG) != IMG_INIT_PNG) {
-		printf("Error initializing SDL_Image: %s\n", IMG_GetError());
+		printf("*** Error initializing SDL_Image: %s\n", IMG_GetError());
 		return 0;
 	}
 	// Calidad de escalado
 	if (SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "best") == SDL_FALSE) {
-		printf("Error assigning scaling hint: %s\n", SDL_GetError());
+		printf("*** Error assigning scaling hint: %s\n", SDL_GetError());
 	}
 	// Crear ventana
 	*ptrWindow = SDL_CreateWindow("Intento de tetris", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, SCREEN_WIDTH, SCREEN_HEIGHT, 0);
 	if (*ptrWindow == NULL) {
-		printf("Error creating window: %s\n", SDL_GetError());
+		printf("*** Error creating window: %s\n", SDL_GetError());
 		return 0;
 	}
 	SDL_Surface* icon = IMG_Load("assets/udec_icon.webp");
 	if (icon == NULL) {
-		printf("Error assigning window icon: %s\n", IMG_GetError());
+		printf("*** Error assigning window icon: %s\n", IMG_GetError());
 	}
 	SDL_SetWindowIcon(*ptrWindow, icon); // Poner icono a la ventana
 	SDL_FreeSurface(icon);
 	// Crear renderer
 	*ptrRenderer = SDL_CreateRenderer(*ptrWindow, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
 	if (*ptrRenderer == NULL) {
-		printf("Error creating renderer: %s\n", SDL_GetError());
+		printf("*** Error creating renderer: %s\n", SDL_GetError());
 		return 0;
 	}
 	SDL_SetRenderDrawColor(*ptrRenderer, 0, 0, 0, 255); // Color fondo (Negro)
@@ -324,34 +322,58 @@ Text* initText(const char *str, Font *font, const SDL_Color color, const int x, 
 		.size		= size
 	};
 	strcpy(text->string, str);	// Copiar parametro string en la string de estructura
-	if (text->font == NULL) printf("ERROR INICIALIZANDO FONT: %s\n", TTF_GetError());
+	if (text->font == NULL) printf("*** Error initText \"%s\": %s\n", text->string,TTF_GetError());
 	return text;
 }
 
 // Funcion que asigna texturas a tetrominos
 void loadTetrominoesTexture(SDL_Renderer *renderer) {
+	bool error = false;
 	// Asignar texturas
 	for (int nShape = 0; nShape < 9; nShape++) {
-		blockColors[nShape] = IMG_LoadTexture(renderer, blockPaths[nShape]);
-		if (nShape == 7) ghostBlock = IMG_LoadTexture(renderer, blockPaths[nShape]);
-		if (nShape == 8) lockBlock = IMG_LoadTexture(renderer, blockPaths[nShape]);
+		switch (nShape) {
+			case 7:
+				ghostBlock = IMG_LoadTexture(renderer, blockPaths[nShape]);
+				if (ghostBlock == NULL) error = true;
+				break;
+			case 8:
+				lockBlock = IMG_LoadTexture(renderer, blockPaths[nShape]);
+				if (lockBlock == NULL) error = true;
+				break;
+			default:
+				blockColors[nShape] = IMG_LoadTexture(renderer, blockPaths[nShape]);
+				if (blockColors[nShape] == NULL) error = true;
+				break;
+		}
 	}
+	if (error) printf("Error loadTetrominoesTexture: %s\n", SDL_GetError());
 }
 
 // Cargar fondos
 void loadBackgroundsTexture(SDL_Renderer *renderer, SDL_Texture **backgrounds) {
+	bool error = false;
 	for (int i = 0; i < 4; i++) {
 		backgrounds[i] = IMG_LoadTexture(renderer, backgroundsPath[i]);
+		if (backgrounds[i] == NULL) error = true;
 	}
+	if (error) printf("Error loadBackgroundsTexture: %s\n", SDL_GetError());
 }
 
-void loadGameOverTexture(SDL_Renderer *renderer, SDL_Texture **gameover) {
+void loadGameOverTexture(SDL_Renderer *renderer, SDL_Texture **gameOverTexture) {
+	bool error = false;
 	for (int i = 0; i < 9; i++) {
-		gameover[i] = IMG_LoadTexture(renderer, gameOverPath[i]);
+		gameOverTextures[i] = IMG_LoadTexture(renderer, gameOverPath[i]);
+		if (gameOverTextures[i] == NULL) error = true;
 	}
-	SDL_QueryTexture(gameover[1], NULL, NULL, &gameOverRect.w, &gameOverRect.h);
-	gameOverRect.x = SCREEN_WIDTH / 2 - gameOverRect.w;
-	gameOverRect.y = SCREEN_HEIGHT / 2 - gameOverRect.h;
+	if (error) printf("Error loadGameOverTexture(LoadTextures): %s\n", SDL_GetError());
+	else {
+		if (SDL_QueryTexture(gameOverTextures[1], NULL, NULL, &gameOverRect.w, &gameOverRect.h) < 0) {
+			printf("Error loadGameOverTexture(QueryTexture): %s\n", SDL_GetError());
+		} else {
+			gameOverRect.x = SCREEN_WIDTH/2 - gameOverRect.w/2;
+			gameOverRect.y = 300;
+		}
+	}
 }
 
 // Funcion que carga textura de texto
@@ -360,13 +382,13 @@ void loadTextTexture(SDL_Renderer *renderer, Text *text) {
 
 	SDL_Surface* textSurface = TTF_RenderText_Solid(text->font, text->string, text->color);
 	if (textSurface == NULL) {
-		printf("Error al intentar crear textSurface: %s\n", TTF_GetError());
+		printf("*** Error loadTextTexture (Surface): %s\n", TTF_GetError());
 	} else {
 		text->rect.w = textSurface->w * text->size;
 		text->rect.h = textSurface->h * text->size;
 	}
 	text->texture = SDL_CreateTextureFromSurface(renderer, textSurface);
-	if (text->texture == NULL) printf("Error al intentar crear textTexture: %s\n", SDL_GetError());
+	if (text->texture == NULL) printf("*** Error loadTextTexture (Texture): %s\n", SDL_GetError());
 	SDL_FreeSurface(textSurface);
 }
 
@@ -390,39 +412,17 @@ void printPlayfield(Playfield *playfield) {
 	printf("\n");
 }
 
-// Funcion que actualiza tablero
-void updatePlayfield(Playfield *playfield, Tetromino *curr, Tetromino *next) {
-	// Guardar caracteristicas de pieza dropeada
-	lastDropedRow = curr->y;
-	lastDropedSize = curr->size;
-	printf("lastDropedRow: %d, lastDropedSize: %d!!!!!!!!!!\n", curr->y, curr->size); //? Test de drops
-
-	// Ingresar pieza actual al stack
-	for (int i = 0; i < curr->size; i++) {
-		for (int j = 0; j < curr->size; j++) {
-			if (curr->matrix[i][j]) {
-				playfield->matrix[i + curr->y][j + curr->x] = curr->shape;
-			}
-		}
-	}
-	printPlayfield(playfield); //? Imprimir matrix actual
-	countStackHeight(playfield); // Comprobar altura del Stack
-
-
-	if (firstThreeDrops >= 3) clearedLines = (deleteLines(playfield));
-	if (lastStackRow <= 5) gameOver = gameOverCheck(playfield, curr);
-
-	if (gameOver) return;
-
-	totalLines += clearedLines;
-
-	newTetromino(curr, next);
-}
-
 // Generar nueva pieza pseudo aleatoria //TODO: FALTA AGREGAR 7-BAG
 void newTetromino(Tetromino *curr, Tetromino *next) {
-	*curr = *next;
-	*next = tetrominoes[rand() % 7];
+	if (firstThreeDrops > 0) {
+		*curr = *next;
+		*next = tetrominoes[rand() % 7];
+	} else {
+		*curr = tetrominoes[rand() % 7];
+		*next = tetrominoes[rand() % 7];
+	}
+	// Pequeño delay antes de que la nueva pieza baje de nuevo
+	fallDelay = lroundf(difficulty);
 }
 
 // Funcion que revisa si el jugador perdio //TODO: MEJORAR DETECCION DE GAMEOVER
@@ -581,8 +581,6 @@ void hardDropTetromino(Playfield *playfield, Tetromino *curr, Tetromino *next) {
 	curr->y--;
 
 	droped = true;
-	// Pequeño delay antes de que la nueva pieza baje de nuevo
-	dropDelay = 60;
 }
 
 // Funcion que mueve un bloque abajo la pieza //TODO: MEJORAR SOFTDROP ****************************************************
@@ -595,106 +593,141 @@ void softDropTetromino(Playfield *playfield, Tetromino *curr, Tetromino *next) {
 	}
 }
 
-// Funcion que maneja delay de fall y dificultad //TODO: HACER VELOCIDAD DE CAIDA DEPENDIENTE DE DIFICULTAD ******************
-bool checkFallTime(Uint64 countFrames) {
-	// Fall (Cada 48 frames baja 1 celda)
-	if (countFrames % (int) 48 == 0 && dropDelay == 0 && countFrames > 48) {
+// Funcion que maneja delay de fall y dificultad //TODO: ARREGLAR https://gamedev.stackexchange.com/questions/159835/understanding-tetris-speed-curve
+bool checkFallTime(Uint64 totalFrames) {
+	if ((totalFrames % lroundf(difficulty) == 0) && !(fallDelay > 0)) {
 		return true;
-	} else if (dropDelay > 0) {
-		dropDelay--;
+	} else {
+		if (fallDelay > 0) fallDelay--;
 	}
 	return false;
 }
 
 // Funcion que calcula score
 void calculateScore(int linesCleared) {
+	// Calcular score segun cantida de lineas limpiadas al mismo tiempo //TODO: AGREGAR CASOS ESPECIALES EJ: Tspins
 	switch(linesCleared) {
 		case 1: {score += 80   * (level + combo); break;} // Single
 		case 2: {score += 200  * (level + combo); break;} // Double
 		case 3: {score += 600  * (level + combo); break;} // Triple
 		case 4: {score += 2400 * (level + combo); break;} // Tetris
+		//TODO TSPINS
+		//TODO FULL CLEAR
 	}
+
 	if (linesCleared > 0) combo++;
 	else combo = 0;
 
-	if (totalLines % 20 == 0) {
+	// Cada 20 lineas limpiadas
+	if (totalLines >= 10 * level) { //TODO Encontrar mejor condicion para pasar niveles
 		level++;
-		levelUp = true;
-	} else {
-		levelUp = false;
+		nextLevel = true;
 	}
 }
 
-void calculateDifficulty(int level) {
-	difficulty = pow((0.8 - ((level - 1) *0.007)), level - 1);
-	printf("Level %d: caida cada %2.f frames\n", level, difficulty);
+// Calcular dificultd segun nivel //TODO ARREGLAR FORMULA
+float calculateDifficulty(Uint8 level) {
+	return (pow((0.8 - ((level - 1) *0.007)), level - 1)) * 60;
 }
 
 // Funcion que renderiza textura de texto
 void renderText(SDL_Renderer *renderer, Text *text) {
-	if (SDL_RenderCopy(renderer, text->texture, NULL, &text->rect) < 0) {
-		printf("Error renderizando texto: %s\n", SDL_GetError());
+	if (SDL_RenderCopy(renderer, text->texture, NULL, &text->rect) < 0) printf("*** Error renderText \"%s\": %s\n", text->string, SDL_GetError());
+}
+
+// Funcion para renderizar especificamente los fps
+void renderFPS(SDL_Renderer *renderer, Text *textFPS) {
+	// Cargar texto de FPS actuales
+	if (totalFrames % 30 == 0) {
+		snprintf(textFPS->string + 5, 6,"%.1f", FPS);
+		loadTextTexture(renderer, textFPS); // Cargar textura de string con cantidad de FPS
+	}
+	if (totalFrames > 30) {
+		renderText(renderer, textFPS);
 	}
 }
 
 // Renderizar texturas de fondo
 void renderBackground(SDL_Renderer *renderer, SDL_Texture *background, SDL_Texture *gameboardInt) {
-	SDL_RenderCopy(renderer, background, NULL, NULL);
-	SDL_RenderCopy(renderer, gameboardInt, NULL, NULL);
+	if (SDL_RenderCopy(renderer, background, NULL, NULL) < 0) printf("Error renderBackground(background): %s\n", SDL_GetError());
+	if (SDL_RenderCopy(renderer, gameboardInt, NULL, NULL) < 0) printf("Error renderBackground(gameboardInt): %s\n", SDL_GetError());
 }
 
+// Renderizar todo respecto a pantalla de game over //TODO AGREGAR PANTALLA DE GAME OVER
 void renderGameOver(SDL_Renderer *renderer, SDL_Texture **gameOverTextures, Text *textRecord) {
+	if (totalFrames % 20 == 0) currGameOverTitle++;
+	if (currGameOverTitle > 8) currGameOverTitle = 1;
+
 	SDL_RenderClear(renderer);
 
-	SDL_RenderCopy(renderer, gameOverTextures[0], NULL, NULL);
-	if (countFrames % 20) currGameOver++;
-	if (currGameOver > 8) currGameOver = 0;
-	SDL_RenderCopy(renderer, gameOverTextures[currGameOver], NULL, &gameOverRect);
+	if (SDL_RenderCopy(renderer, gameOverTextures[0], NULL, NULL) < 0) {
+		printf("*** Error renderGameOver(gameOverBackground): %s\n", SDL_GetError());
+	}
+	if (SDL_RenderCopy(renderer, gameOverTextures[currGameOverTitle], NULL, &gameOverRect) < 0) {
+		printf("*** Error renderGameOver(gameOverTitles): %s\n", SDL_GetError());
+	}
 	renderText(renderer, textRecord);
+	
+	renderFPS(renderer, textFPS);
 
 	SDL_RenderPresent(renderer);
 }
 
+// Renderizar piezas next y hold
 void renderNextHold(SDL_Renderer *renderer, Tetromino *next, Tetromino *holder) {
-	int currRectNext, currRectHolder, nextX, nextY, holderX, holderY;
-	currRectNext = 0, currRectHolder = 0, nextX = 665, nextY = 200, holderX = 90, holderY = 200;
+	bool errorNext = false, errorHold1 = false, errorHold2 = false;
+	int currRectNext = 0, currRectHolder = 0, nextX = 665, nextY = 200, holderX = 90, holderY = 200; // Posicion de pieza Hold y Next
+	// Ajustar segun pieza (para que este centrado)
 	switch (next->shape) {
 		case 'O': nextX += 20; break;
 		case 'I': nextX -= 20; nextY -= 5; break;
 		default: break;
 	}
+	// Renderizar Next
 	for(int i = 0; i < next->size; i++) {
 		for(int j = 0; j < next->size; j++) {
 			if(next->matrix[i][j]) {
 				next->rects[currRectNext].w = next->rects[currRectNext].h = TILE_SIZE + 1;
 				next->rects[currRectNext].x = (j * (TILE_SIZE + 1)) + nextX;
 				next->rects[currRectNext].y = (i * (TILE_SIZE + 1)) + nextY;
-				SDL_RenderCopy(renderer, blockColors[next->nShape], NULL, &next->rects[currRectNext]);
+				if (SDL_RenderCopy(renderer, blockColors[next->nShape], NULL, &next->rects[currRectNext])) {
+					errorNext = true;
+				}
 				currRectNext++;
 			}
 		}
 	}
+	// (Si ya se holdeo una pieza previamente) Renderizar Hold
 	if (firstHold) {
+		// Ajustar segun pieza
 		switch (holder->shape) {
 			case 'O': holderX += 20; break;
 			case 'I': holderX -= 20; holderY -= 5; break;
 			default: break;
 		}
+		// Renderizar Hold
 		for(int i = 0; i < holder->size; i++) {
 			for(int j = 0; j < holder->size; j++) {
 				if(holder->matrix[i][j]) {
 					holder->rects[currRectHolder].w = holder->rects[currRectHolder].h = TILE_SIZE + 1;
 					holder->rects[currRectHolder].x = (j * (TILE_SIZE + 1)) + holderX;
 					holder->rects[currRectHolder].y = (i * (TILE_SIZE + 1)) + holderY;
-					if (holded) SDL_RenderCopy(renderer, lockBlock, NULL, &holder->rects[currRectHolder]);
-					else SDL_RenderCopy(renderer, blockColors[holder->nShape], NULL, &holder->rects[currRectHolder]);
+					if (holded) { // Textura de "Lock" si no se puede volver a holdear
+						if (SDL_RenderCopy(renderer, lockBlock, NULL, &holder->rects[currRectHolder]) < 0) errorHold1 = true;
+					} else { // Textura de la pieza
+						if (SDL_RenderCopy(renderer, blockColors[holder->nShape], NULL, &holder->rects[currRectHolder]) < 0) errorHold2 = true;
+					}
 					currRectHolder++;
 				}
 			}
 		}
 	}
+	if (errorNext) printf("Error renderNextHold(Next): %s\n", SDL_GetError());
+	if (errorHold1) printf("Error renderNextHold(HoldLock): %s\n", SDL_GetError());
+	if (errorHold2) printf("Error renderNextHold(Hold): %s\n", SDL_GetError());
 }
 
+// Renderizar pieza actual
 void renderTetromino(SDL_Renderer *renderer, Tetromino *tetro) {
 	int currRect = 0;
 	for(int i = 0; i < tetro->size; i++) {
@@ -711,6 +744,7 @@ void renderTetromino(SDL_Renderer *renderer, Tetromino *tetro) {
 	}
 }
 
+// Renderiza previsualizacion de caida de pieza actual
 void renderGhostTetromino(SDL_Renderer *renderer, Playfield *playfield, Tetromino *curr) {
 	bool noFitting = false;
 	int currRect = 0;
@@ -734,16 +768,17 @@ void renderGhostTetromino(SDL_Renderer *renderer, Playfield *playfield, Tetromin
 	}
 }
 
+// Renderizar tablero
 void renderPlayfield(SDL_Renderer *renderer, Playfield *playfield) {
-	for (int y = BOARD_HEIGHT - 2; y >= 0; y--) {
-		for (int x = 1; x < BOARD_WIDTH - 1; x++) {
-			if (playfield->matrix[y][x] != ' ') {
+	for (int row = BOARD_HEIGHT - 2; row >= lastStackRow; row--) {
+		for (int column = 1; column < BOARD_WIDTH - 1; column++) {
+			if (playfield->matrix[row][column] != ' ') {
 				SDL_Rect tmpRect;
 				int nShape;
 				tmpRect.w = tmpRect.h = TILE_SIZE;
-				tmpRect.x = ((x - 1) * (TILE_SIZE + 1)) + BOARD_X_ORIGIN;
-				tmpRect.y = (y * (TILE_SIZE + 1)) + BOARD_Y_ORIGIN;
-				switch (playfield->matrix[y][x]) {
+				tmpRect.x = ((column - 1) * (TILE_SIZE + 1)) + BOARD_X_ORIGIN;
+				tmpRect.y = (row * (TILE_SIZE + 1)) + BOARD_Y_ORIGIN;
+				switch (playfield->matrix[row][column]) {
 					case 'L': nShape = 0; break;
 					case 'Z': nShape = 1; break;
 					case 'I': nShape = 2; break;
@@ -754,36 +789,44 @@ void renderPlayfield(SDL_Renderer *renderer, Playfield *playfield) {
 					default: break;
 				}
 				if (SDL_RenderCopy(renderer, blockColors[nShape], NULL, &tmpRect) < 0) {
-					printf("ERROR RENDER PLAYFIELD: %s\n", SDL_GetError());
+					printf("*** Error renderPlayfield: %s\n", SDL_GetError());
 				}
 			}
 		}
 	}
 }
 
+void framesControl() {
+	totalFrames++; // Contar frames
+	frame_time = SDL_GetTicks64() - capTimer; // Tiempo de creacion de frame anterior
+	if (frame_time < 1000 / 60) SDL_Delay(1000 / 60 - frame_time);  // Esperar si el tiempo de creacion de frame fue menor a 1000/60 ticks, de manera de que el juego vaya a 60FPS
+	current_time = SDL_GetTicks64() - start_time; // Tiempo actual en juego
+	FPS = totalFrames / (current_time / 1000.f); // Total de frames dividos por el tiempo total (seg) en juego = (FPS)
+}
+
 // Funcion que libera texto junto a su textura y fuente cargada
-void freeText(Text *text) {
+void destroyText(Text *text) {
 	SDL_DestroyTexture(text->texture);
 	TTF_CloseFont(text->font);
 	free(text);
 }
 
 // Funcion que apaga y limpia todos los subsystemas de SDL usados.
-void QuitSDL(SDL_Window *window, SDL_Renderer *renderer) {
-	// bool error = false;
-	// if (*SDL_GetError() != '\0') {
-	// 	printf("LAST SDL ERROR: %s\n", SDL_GetError());
-	// 	error = true;
-	// }
-	// if (*TTF_GetError() != '\0') {
-	// 	printf("LAST SDL_TTF ERROR: %s\n", TTF_GetError());
-	// 	error = true;
-	// }
-	// if (*IMG_GetError() != '\0') {
-	// 	printf("LAST SDL_IMG ERROR: %s\n", IMG_GetError());
-	// 	error = true;
-	// }
-	// if (error) SDL_Delay(3000);
+void quitSDL(SDL_Window *window, SDL_Renderer *renderer) {
+	bool error = false;
+	if (*SDL_GetError() != '\0') {
+		printf("*** LAST SDL ERROR: %s\n", SDL_GetError());
+		error = true;
+	}
+	if (*TTF_GetError() != '\0') {
+		printf("*** LAST SDL_TTF ERROR: %s\n", TTF_GetError());
+		error = true;
+	}
+	if (*IMG_GetError() != '\0') {
+		printf("*** LAST SDL_IMG ERROR: %s\n", IMG_GetError());
+		error = true;
+	}
+	if (error) SDL_Delay(3000);
 
 	TTF_Quit();
 	IMG_Quit();

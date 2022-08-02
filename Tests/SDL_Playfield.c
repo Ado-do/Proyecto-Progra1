@@ -138,7 +138,7 @@ bool holded, firstHold; // Hold flags
 bool droped; // Drop flag
 Uint8 firstThreeDrops; // Drop flags
 bool lock_delayFRUNA; // Lock delay flag //TODO: RESETEAR DELAY SEGUN CASOS DE RESET DE TETRIS GUIDELINE
-Uint8 dropDelay; // Contador de delay hardD
+Uint8 fallDelay; // Contador de delay hardD
 
 bool running; // Flag loop game
 bool restart; // Flag restart
@@ -457,7 +457,7 @@ void hardDropTetromino(Playfield *playfield, Tetromino *curr, Tetromino *next) {
 
 	droped = true;
 	// Pequeño delay antes de que la nueva pieza baje de nuevo
-	dropDelay = 60;
+	fallDelay = 60;
 }
 
 //TODO: MEJORAR SOFTDROP ****************************************************
@@ -473,10 +473,10 @@ void softDropTetromino(Playfield *playfield, Tetromino *curr, Tetromino *next) {
 //TODO: HACER VELOCIDAD DE CAIDA DEPENDIENTE DE DIFICULTAD ******************
 bool checkFallTime(Uint64 countFrames) {
 	// Fall (Cada 48 frames baja 1 celda)
-	if (countFrames % 48 == 0 && dropDelay == 0 && countFrames > 48) {
+	if (countFrames % 48 == 0 && fallDelay == 0 && countFrames > 48) {
 		return true;
-	} else if (dropDelay > 0) {
-		dropDelay--;
+	} else if (fallDelay > 0) {
+		fallDelay--;
 	}
 	return false;
 }
