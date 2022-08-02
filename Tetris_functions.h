@@ -631,8 +631,10 @@ void calculateScore(int linesCleared) {
 
 	// Cada 20 lineas limpiadas
 	if (totalLines >= 10 * level) { //TODO Encontrar mejor condicion para pasar niveles
-		level++;
-		nextLevel = true;
+		if (level < 15) { //TODO Despues del nivel 13 las lineas caen mas de dos filas por frame (quizas lo arregle alfinal)
+			level++;
+			nextLevel = true;
+		}
 	}
 }
 
