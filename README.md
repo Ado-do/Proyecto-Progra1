@@ -63,27 +63,27 @@ Leer `Pauta Proyecto Tetris.pdf` por cualquier duda :)
     - [ ] Configuración <sub>(Opcional)</sub>
     - [ ] Mayores puntuaciones  <sub>(Opcional)</sub>
 
-- [ ] ***Crear campo de juego (grilla 16x10) y mover piezas en esta***
-    - [ ] **Definir limites de movimiento en la grilla**
-    - [ ] **Game Over! (Si una pieza sobrepasa el campo de juego)**
+- [X] ***Crear campo de juego (grilla 16x10) y mover piezas en esta***
+    - [X] **Definir limites de movimiento en la grilla**
+    - [X] **Game Over! (Si una pieza sobrepasa el campo de juego)**
 
-- [ ] ***Implementar los 7 tetrominos***
+- [X] ***Implementar los 7 tetrominos***
     - [X] **Rotaciones**
      - [ ] ["Super rotation system"](https://tetris.wiki/Super_Rotation_System)
      - [ ] ["Wall kicks"](https://tetris.wiki/Super_Rotation_System#Wall_Kicks)
-    - [ ] **Mostrar la siguiente pieza en la secuencia**
-    - [ ] **Elimininar lineas completadas**
+    - [X] **Mostrar la siguiente pieza en la secuencia**
+    - [X] **Elimininar lineas completadas**
     - [ ] **Usar ["Random generator"](https://www.educative.io/courses/game-development-js-tetris/xlKZA7B9lLr) para crear la secuencia de piezas**
-    - [ ] Preview de donde caera la pieza
+    - [X] Preview de donde caera la pieza
 
-- [ ] ***Definir los [controles finales](https://strategywiki.org/wiki/Tetris/Controls)***
+- [X] ***Definir los [controles finales](https://strategywiki.org/wiki/Tetris/Controls)***
     - [ ] DAS (Delayed Auto-Shift) y tipos de drops (Soft drop y Hard drop)
 
 - [ ] ***Duracion de juego "infinita"***
 
 - [ ] ***Sistema de Puntuación ["Scoring"](https://tetris.wiki/Scoring)***
-    - [ ] **Contador de puntuación en pantalla**
-    - [ ] **Contador de lineas completadas**
+    - [X] **Contador de puntuación en pantalla**
+    - [X] **Contador de lineas completadas**
     - [ ] Implementar velocidades y dificultad
     - [ ] Cambiar escenarios segun puntuacion <sub>(Opcional)</sub>
 
@@ -104,14 +104,13 @@ Aqui dar instrucciones de como montar el repositorio localmente y como compilar 
 ~~Ser vio pa la wea~~
 Dependencias para poder compilar
 
-* SDL2: Instalación en ubuntu
-  ```
-  sudo apt-get install libsdl2-2.0
-  ```
-* SDL2_image: Instalación en ubuntu
-  ```
-  sudo apt-get install libsdl-image1.2-dev
-  ```
+* SDL2
+ 
+* SDL2_image
+ 
+* SDL2_ttf
+
+*SDL2_mixer
 
 ### Instalación
 
@@ -120,9 +119,9 @@ Dependencias para poder compilar
    ```
    cd ../Proyecto-Tetris/
    ```
-3. Usar make en "nombre_archivo".c
+3. Usar make
    ```sh
-   make SRCS="nombre_archivo".c
+   make
    ```
 4. Una vez compilado abrir con
    ```
