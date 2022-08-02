@@ -79,13 +79,14 @@ Leer `Pauta Proyecto Tetris.pdf` por cualquier duda :)
 - [X] ***Definir los [controles finales](https://strategywiki.org/wiki/Tetris/Controls)***
     - [ ] DAS (Delayed Auto-Shift) y tipos de drops (Soft drop y Hard drop)
 
-- [ ] ***Duracion de juego "infinita"***
+- [X] ***Duracion de juego "infinita"***
 
 - [ ] ***Sistema de Puntuación ["Scoring"](https://tetris.wiki/Scoring)***
     - [X] **Contador de puntuación en pantalla**
     - [X] **Contador de lineas completadas**
-    - [ ] Implementar velocidades y dificultad
-    - [ ] Cambiar escenarios segun puntuacion <sub>(Opcional)</sub>
+    - [X] Implementar velocidades y dificultad
+    - [X] Cambiar escenarios segun puntuacion <sub>(Opcional)</sub>
+    - [ ] Guardar records
 
 - [ ] Retoques finales
     - [ ] Solucionar bugs
