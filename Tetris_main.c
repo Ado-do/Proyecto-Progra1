@@ -15,17 +15,31 @@ int main(int argc, char *argv[]) {
 	}
 //! DECLARAR Y INICIALIZAR *******************************************************************************************************
 
-	initPlayfield(&playfield);
-
 	textFPS = initText("FPS: ", &upheavalFont, (SDL_Color){255,255,255,200}, 10, 1, 1);
 	textIntruc = initText("Press R to restart game", &upheavalFont, (SDL_Color){255,255,255,200}, 0, 1, 1);
+	textLevel = initText("Level: 0", &upheavalFont, (SDL_Color){255,255,255,255}, 50, 700, 1.3);
+	textScore = initText("Score: 0", &upheavalFont, (SDL_Color){255,255,255,255}, 50, 730, 1.3);
+	textLines = initText("Lines: 0", &upheavalFont, (SDL_Color){255,255,255,255}, 50, 760, 1.3);
+	textRecord = initText("New Record! Score: ", &upheavalFont, (SDL_Color){255,255,255,255}, 280, 600, 1.5);
 
 	loadBackgroundsTexture(renderer, backgrounds);
+	loadGameOverTexture(renderer, gameOverTextures);
+
 	loadTetrominoesTexture(renderer);
 	gameboardExt = IMG_LoadTexture(renderer, "assets/gameboards/gameboardExt.png");
 	gameboardInt = IMG_LoadTexture(renderer, "assets/gameboards/gameboardInt.png");
 	loadTextTexture(renderer, textIntruc);
 	textIntruc->rect.x = SCREEN_WIDTH - textIntruc->rect.w - 5;
+
+	loadTextTexture(renderer, textLevel);
+	loadTextTexture(renderer, textScore);
+	loadTextTexture(renderer, textLines);
+	loadTextTexture(renderer, textRecord);
+
+	initPlayfield(&playfield);
+
+	level = 1;
+	difficulty = 60; // Caida cada 60 frames (lvl 1)
 
 	Tetromino curr = tetrominoes[rand()%7];
 	Tetromino next = tetrominoes[rand()%7];
@@ -38,44 +52,7 @@ int main(int argc, char *argv[]) {
 	while (running) {
 		capTimer = SDL_GetTicks64(); // Tiempo de inicio de frame
 
-	//! INPUT ======================================================================================
-		gameInput(&curr, &next, &playfield);
-
-	//! LOGICA Y CAMBIOS ======================================================================================
-
-		if(checkFallTime(countFrames)) fall = true;
-		gameUpdate(&playfield, &curr, &next, &holder);
-		if (droped) {
-			updatePlayfield(&playfield, &curr, &next);
-			droped = false;
-		}
-
-		//TODO: CONTAR PUNTAJE
-	//! RENDER ======================================================================================
-		// Cargar texto de FPS actuales
-		if (countFrames > 0) {
-			snprintf(textFPS->string + 5, 6,"%.1f", FPS);
-			loadTextTexture(renderer, textFPS); // Cargar textura de string con cantidad de FPS
-		}
-
-		SDL_RenderClear(renderer);
-		// Fondo ================================================================
-		renderBackground(renderer, backgrounds[currBackground], gameboardInt);
-		renderNextHold(renderer, &next, &holder);
-
-		// Texto ================================================================
-		if (countFrames > 0) renderText(renderer, textFPS);
-		renderText(renderer, textIntruc);
-
-		// Playfield ============================================================
-		renderPlayfield(renderer, &playfield);
-		renderGhostTetromino(renderer, &playfield, &curr);
-		renderTetromino(renderer, &curr);
-
-		// Interfaz superpuesta =================================================
-		SDL_RenderCopy(renderer, gameboardExt, NULL, NULL);
-        
-		SDL_RenderPresent(renderer);
+		tetrisLoop(&playfield, &curr, &next, &holder);
 
 	//! CONTROL DE FRAMES Y TIEMPOS ======================================================================================
 		countFrames++; // Contar frames
@@ -86,10 +63,13 @@ int main(int argc, char *argv[]) {
 	}
 
 //! CERRAR Y LIBERAR RECURSOS ****************************************************************************************************************************/
-
+	
+	freeText(textLines);
+	freeText(textScore);
+	freeText(textLevel);
 	freeText(textIntruc);
 	freeText(textFPS);
-	QuitSDL(window, renderer, &playfield);
+	QuitSDL(window, renderer);
 
 	return 0;
 }

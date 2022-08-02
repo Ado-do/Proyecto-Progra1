@@ -2,6 +2,7 @@
 
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_ttf.h>
+#include <SDL2/SDL_mixer.h>
 #include <stdio.h>
 #include <stdbool.h>
 
@@ -22,6 +23,11 @@
 enum sense {COUNTER_CLOCKWISE = -1, CLOCKWISE = 1, DOUBLE_CLOCKWISE = 2};
 
 //! Estructuras !//
+
+typedef struct {
+	SDL_Texture* texture;
+	SDL_Rect rect;
+} Texture;
 
 typedef struct Texto {
 	char string[100]; // String del texto
@@ -48,16 +54,15 @@ typedef struct Piezas {
 
 typedef struct Tablero {
 	char matrix[BOARD_HEIGHT][BOARD_WIDTH]; // 24x12 (Total con los bordes y lineas superiores)
-    Tetromino curr;
-	Tetromino next;
-    Tetromino holder;
-
+    // Tetromino curr;
+	// Tetromino next;
+    // Tetromino holder;
 } Playfield;	//* Estructura de tablero
 
-typedef struct Tetris {
-    Playfield playfield;
-	Sint64 score;
-} Tetris;	//* Estructura que contiene datos de sesion actual
+// typedef struct Tetris {
+//     Playfield playfield;
+// 	Sint64 score;
+// } Tetris;	//* Estructura que contiene datos de sesion actual
 
 //! Estructuras inicializadas !//
 //* Tablero/Grilla/Zona de juego
@@ -119,8 +124,8 @@ Tetromino tetrominoes[7] = {
 	INITIAL_X, INITIAL_Y}
 };
 
-Text* textFPS;
-Text* textIntruc;
+//* Textos
+Text *textFPS, *textIntruc, *textScore, *textLevel, *textLines, *textRecord;
 
 //! Variables globales ======================================================
 
@@ -131,23 +136,34 @@ SDL_Renderer* renderer;
 //* Texturas globales
 SDL_Texture *gameboardInt, *gameboardExt;
 SDL_Texture *blockColors[7], *ghostBlock, *lockBlock;
-SDL_Texture *backgrounds[4];
+SDL_Texture *backgrounds[4], *gameOverTextures[9];
+
+SDL_Rect gameOverRect;
 
 //* Flags y contadores (se inicializan en 0)
 
-Uint8 currBackground; // Indice de background actual
+Uint8 currBackground, currGameOver; // Indice de background actual
+
 //* Flags de input
-bool up, right, left, softD, hardD, fall, hold;  // Controles flags
+bool up, right, left, softD, hardD, fall, hold; // Controles flags
 Sint8 rotation; // Rotation flag
 
-Uint8 deletedLines; // Contador de lineas eliminadas
+//* Flags y contadores de updateGame y logica tetris
+bool holded, firstHold; // Hold flags
+Uint8 firstThreeDrops; // Primero 3 drops count
+bool droped; // Drop flag
 Uint8 lastDropedRow, lastDropedSize; // Propiedades ultima pieza dropeada
 Uint8 lastStackRow; // Ultima fila ocupada por stack (ALTURA)
-bool holded, firstHold; // Hold flags
-bool droped; // Drop flag
-Uint8 firstThreeDrops = 0; // Drop flags
 bool lock_delayFRUNA; // Lock delay flag //TODO: RESETEAR DELAY SEGUN CASOS DE RESET DE TETRIS GUIDELINE
 Uint8 dropDelay; // Contador de delay hardD
+
+bool levelUp; // Flag level up
+bool newScore; // Flag score
+Uint8 clearedLines; // Contador de lineas eliminadas
+Uint8 level, combo;
+Uint32 totalLines, currentLines;
+Sint64 score;
+float difficulty;
 
 bool running; // Flag loop game
 bool restart; // Flag restart
@@ -175,4 +191,15 @@ char* backgroundsPath[] = {
 	"assets/backgrounds/lvl2v2.png",
 	"assets/backgrounds/lvl3v2.png",
 	"assets/backgrounds/lvl4v2.png"
+};
+char* gameOverPath[] = {
+	"assets/backgrounds/gameover/GameOver.png",
+	"assets/backgrounds/gameover/game-over1.png",
+	"assets/backgrounds/gameover/game-over2.png",
+	"assets/backgrounds/gameover/game-over3.png",
+	"assets/backgrounds/gameover/game-over4.png",
+	"assets/backgrounds/gameover/game-over5.png",
+	"assets/backgrounds/gameover/game-over6.png",
+	"assets/backgrounds/gameover/game-over7.png",
+	"assets/backgrounds/gameover/game-over8.png"
 };

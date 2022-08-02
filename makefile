@@ -12,8 +12,8 @@ CFLAGS := -ggdb3 -O0 --std=c99 -Wall
 EXEC := tetris.exe
 
 # Library Flags
-LIBS := -lSDL2main -lSDL2 -lSDL2_image -lSDL2_ttf -lm -lmingw32
-# LIBS := -lSDL2main -lSDL2 -lSDL2_image -lSDL2_mixer -lSDL2_ttf -lmingw32
+# LIBS := -lSDL2main -lSDL2 -lSDL2_image -lSDL2_ttf -lm -lmingw32
+LIBS := -lSDL2main -lSDL2 -lSDL2_image -lSDL2_mixer -lSDL2_ttf -lmingw32
 
 # Distribution
 DIST_NAME := SDL2-tetris-windows
