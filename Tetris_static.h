@@ -24,6 +24,7 @@ enum sense {COUNTER_CLOCKWISE = -1, CLOCKWISE = 1, DOUBLE_CLOCKWISE = 2};
 
 //! Estructuras !//
 
+//TODO: SOLO GENERAR UN "TTF_Font" Y USARLO EN TODO EL JUEGO, *NO* ABRIR UN TTF_FONT PARA CADA TEXTO
 typedef struct Texto {
 	char string[100]; // String del texto
 	TTF_Font* font; // Font del texto
@@ -35,6 +36,7 @@ typedef struct Texto {
 
 typedef struct Fuentes {
 	char* path; // Path del font
+	//! TTF_FONT font; <======================================================================
 	Uint8 size; // Tamaño del font (Escala fija)
 } Font;	//* Estructura de Fonts
 

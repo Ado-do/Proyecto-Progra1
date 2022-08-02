@@ -70,6 +70,7 @@ int main(int argc, char *argv[]) {
 
 	//! CERRAR Y LIBERAR RECURSOS ****************************************************************************************************************************/
 	
+	destroyText(textRecord);
 	destroyText(textLines);
 	destroyText(textScore);
 	destroyText(textLevel);
