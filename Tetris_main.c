@@ -1,6 +1,3 @@
-#ifndef SDL_MAIN_HANDLED
-#define SDL_MAIN_HANDLED
-#endif
 
 #include "Tetris_static.h"
 #include "Tetris_functions.h"

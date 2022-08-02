@@ -8,12 +8,8 @@ SDL_DEVELOPMENT_DIR := C:\msys64\mingw64\lib
 CFLAGS := -ggdb3 -O0 --std=c99 -Wall
 # CFLAGS := -ggdb3 -O0 -mwindows --std=c99 -Wall
 
-# Binary File
-EXEC := tetris.exe
-
 # Library Flags
-# LIBS := -lSDL2main -lSDL2 -lSDL2_image -lSDL2_ttf -lm -lmingw32
-LIBS := -lSDL2main -lSDL2 -lSDL2_image -lSDL2_mixer -lSDL2_ttf -lmingw32 -lm
+LIBS := -lmingw32 -lSDL2main -lSDL2 -lSDL2_image -lSDL2_mixer -lSDL2_ttf -lm
 
 # Distribution
 DIST_NAME := SDL2-tetris-windows
@@ -25,15 +21,11 @@ else # Linux
 # SDL Development include file and directory
 SDL_DEVELOPMENT_INC := /usr/include/SDL2
 
-# LIBS := `sdl2-config --libs --cflags` -lSDL2main -lSDL2 -lSDL2_image -lSDL2_mixer -lSDL2_ttf
-LIBS := $(shell sdl-config --libs) -lSDL2main -lSDL2 -lSDL2_image -lSDL2_ttf -lm
+LIBS := $(shell sdl-config --libs) -lSDL2main -lSDL2 -lSDL2_image -lSDL2_mixer -lSDL2_ttf -lm
 # SDL_LDFLAGS := $(shell sdl-config --libs)
 
 CFLAGS := $(shell sdl-config --cflags) -ggdb3 -O0 --std=c99 -Wall
 # SDL_CFLAGS := $(shell sdl-config --cflags)
-
-# Binary File
-EXEC := tetris.exe
 
 # Distribution
 DIST_NAME := SDL2-tetris-linux
@@ -56,7 +48,7 @@ SRCS := Tetris_main.c
 OBJS := $(SRCS:.c=.o)
 
 # name of executable
-# EXEC := tetris.exe
+EXEC := tetris.exe
 
 # default recipe
 all: $(EXEC) $(SRCS)	
