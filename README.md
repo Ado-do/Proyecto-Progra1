@@ -47,7 +47,7 @@
 ### Fechas Importantes
 * **Entrega 1:** 24 junio
 * **Entrega 2:** 15 julio
-* **Entrega final:** 17-21 de julio
+* **Entrega final:** 1 de Agosto
 
 Leer `Pauta Proyecto Tetris.pdf` por cualquier duda :)
 
