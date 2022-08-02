@@ -4,7 +4,7 @@
 <br />
 <div align="center">
   </a>
-    <img src="/assets/Portada.bmp" alt="Logo" width="495" height="263">
+    <img src="/assets/frontpage.png" alt="Logo" width="869" height="489">
   </a>
 
   <h3 align="center">PROYECTO PROGRAMACIÓN I (S1 2022)</h3>
@@ -47,7 +47,7 @@
 ### Fechas Importantes
 * **Entrega 1:** 24 junio
 * **Entrega 2:** 15 julio
-* **Entrega final:** 17-21 de julio
+* **Entrega final:** 1 de Agosto
 
 Leer `Pauta Proyecto Tetris.pdf` por cualquier duda :)
 

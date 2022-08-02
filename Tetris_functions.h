@@ -49,14 +49,14 @@ void tetrisGameScreen(Playfield *playfield, Tetromino *curr, Tetromino *next, Te
 		snprintf(textLines->string + 7, 4,"%d", totalLines);
 		loadTextTexture(renderer, textLines);
 		// Actualizar texto score
-		snprintf(textScore->string + 7, 5,"%lld", score);
+		snprintf(textScore->string + 7, 5,"%ld", score);
 		loadTextTexture(renderer, textScore); 
 		clearedLines = 0;
 	}
 	// Si se paso el nivel, actualizar texto de niveles
 	if (nextLevel) {
 		// Actualizar texto nivel
-		snprintf(textLevel->string + 7, 3,"%d", level);
+		snprintf(textLevel->string + 7, 4,"%d", level);
 		loadTextTexture(renderer, textLevel);
 		nextLevel = false;
 	}
