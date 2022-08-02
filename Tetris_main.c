@@ -52,9 +52,8 @@ int main(int argc, char *argv[]) {
 	level = 1;
 	difficulty = calculateDifficulty(level);
 
-	snprintf(textLevel->string + 7, 3,"%d", level);
-	loadTextTexture(renderer, textLevel);
-
+	updateTextTexture(renderer, textLevel, level);
+	
 	newTetromino(&curr, &next);
 
 	running = 1; // Flag de control de gameloop

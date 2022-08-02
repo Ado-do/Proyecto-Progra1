@@ -9,6 +9,7 @@
 #include <stdbool.h>
 #include <time.h>
 #include <math.h>
+#include <ctype.h>
 
 #include "Tetris_static.h"
 
@@ -45,19 +46,16 @@ void tetrisGameScreen(Playfield *playfield, Tetromino *curr, Tetromino *next, Te
 	//* Cargar texturas en caso de actualizar
 	// Si se limpiaron lineas, actualizar texto de score y texto
 	if (clearedLines > 0) {
-		// Actualizar texto lineas 
-		snprintf(textLines->string + 7, 4,"%d", totalLines);
-		loadTextTexture(renderer, textLines);
+		// Actualizar texto lineas
+		updateTextTexture(renderer, textLines, totalLines);
 		// Actualizar texto score
-		snprintf(textScore->string + 7, 5,"%ld", score);
-		loadTextTexture(renderer, textScore); 
+		updateTextTexture(renderer, textScore, score);
 		clearedLines = 0;
 	}
 	// Si se paso el nivel, actualizar texto de niveles
 	if (nextLevel) {
 		// Actualizar texto nivel
-		snprintf(textLevel->string + 7, 4,"%d", level);
-		loadTextTexture(renderer, textLevel);
+		updateTextTexture(renderer, textLevel, level);
 		nextLevel = false;
 	}
 
@@ -392,6 +390,19 @@ void loadTextTexture(SDL_Renderer *renderer, Text *text) {
 	SDL_FreeSurface(textSurface);
 }
 
+// Funcion que actualiza textura de texto
+void updateTextTexture(SDL_Renderer *renderer, Text *text, int number) {
+	int i; // Indice en text->string
+	// Busca el primer numero en la string
+	for (i = 0; i < strlen(text->string); i++) {
+		if (isdigit(text->string[i]) < 0) break;
+	}
+	// Cambiar string
+	snprintf(text->string + i-1, 5,"%d", number);
+	// Actualizar texture
+	loadTextTexture(renderer, text);
+}
+
 //? Imprimir grilla actual
 void printPlayfield(Playfield *playfield) {
 	int row = 0, column = 0;
@@ -639,7 +650,7 @@ void renderText(SDL_Renderer *renderer, Text *text) {
 void renderFPS(SDL_Renderer *renderer, Text *textFPS) {
 	// Cargar texto de FPS actuales
 	if (totalFrames % 30 == 0) {
-		snprintf(textFPS->string + 5, 6,"%.1f", FPS);
+		snprintf(textFPS->string + 5, 6,"%.2f", FPS);
 		loadTextTexture(renderer, textFPS); // Cargar textura de string con cantidad de FPS
 	}
 	if (totalFrames > 30) {

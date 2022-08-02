@@ -160,7 +160,7 @@ bool newScore; // Flag score
 Uint8 clearedLines; // Contador de lineas eliminadas
 Uint8 level, combo;
 Uint32 totalLines, currentLines;
-Sint64 score;
+Sint32 score;
 float difficulty;
 
 //* Flags principales gameloop
@@ -214,6 +214,7 @@ void loadTetrominoesTexture(SDL_Renderer *renderer);
 void loadBackgroundsTexture(SDL_Renderer *renderer, SDL_Texture **backgrounds);
 void loadGameOverTexture(SDL_Renderer *renderer, SDL_Texture **gameOverTextures);
 void loadTextTexture(SDL_Renderer *renderer, Text *text);
+void updateTextTexture(SDL_Renderer *renderer, Text *text, int number);
 
 //* Funciones tablero
 void printPlayfield(Playfield *playfield);
