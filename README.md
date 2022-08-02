@@ -110,7 +110,7 @@ Dependencias para poder compilar
  
 * SDL2_ttf
 
-*SDL2_mixer
+* SDL2_mixer
 
 ### Instalación
 
