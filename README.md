@@ -45,9 +45,9 @@
 * Cristobal Figueroa (Krozz)
 
 ### Fechas Importantes
-* **Entrega 1:** 24 junio
-* **Entrega 2:** 15 julio
-* **Entrega final:** 1 de Agosto
+* ~~**Entrega 1:** 24 junio~~
+* ~~**Entrega 2:** 15 julio~~
+* ~~**Entrega final:** 1 de Agosto~~
 
 Leer `Pauta Proyecto Tetris.pdf` por cualquier duda :)
 
@@ -81,7 +81,7 @@ Leer `Pauta Proyecto Tetris.pdf` por cualquier duda :)
 
 - [X] ***Duracion de juego "infinita"***
 
-- [ ] ***Sistema de Puntuación ["Scoring"](https://tetris.wiki/Scoring)***
+- [ ] ***Sistema de Puntuación (["Scoring"](https://tetris.wiki/Scoring))***
     - [X] **Contador de puntuación en pantalla**
     - [X] **Contador de lineas completadas**
     - [X] Implementar velocidades y dificultad
@@ -155,6 +155,7 @@ Aqui pondremos links utiles para el proyecto, ya sea documentacion de SDL2 o ide
 
 * [Documentación SDL2 (Wiki)](https://wiki.libsdl.org/)
 * [Wiki SDL2 por categorias](https://wiki.libsdl.org/APIByCategory)
+* [Santa biblia para aprender SDL y game dev (lazyfoo)](https://lazyfoo.net/tutorials/SDL/) 
 * [Seminario de un tipo de Harvard que explica de pana el SDL (esta en español)](https://youtu.be/yFLa3ln16w0)
 * [Tutorial para hacer un menú bomnito con SDL](https://www.parallelrealities.co.uk/tutorials/widgets/widgets1.php)
 * [Insertar texto con SDL_ttf (puede ser util para el menu y score)](https://www.parallelrealities.co.uk/tutorials/ttf/ttf1.php)
