@@ -12,8 +12,9 @@
 #define SCREEN_FPS 60
 #define SCREEN_TICKS_PER_FRAME 1000/SCREEN_FPS
 #define TILE_SIZE 37
+#define TILE_MARGIN 0
 #define INITIAL_X 4
-#define INITIAL_Y 1
+#define INITIAL_Y 0
 #define BOARD_WIDTH 12 // (10 + 2 bordes laterales)
 #define BOARD_HEIGHT 24 // (20 + 3 (superiores donde spawnea la pieza) + 1 (borde inferior)) // ? HACERLO 40 ALTURA
 #define BOARD_X_ORIGIN 246 // Pos X de pixel de esquina izq superior del gameboard
@@ -35,10 +36,10 @@ typedef struct Texto {
 } Text;	//* Estructuras de texto
 
 typedef struct Fuentes {
+	TTF_Font* font; // Font del texto
 	char* path; // Path del font
-	//! TTF_FONT font; <======================================================================
 	Uint8 size; // Tamaño del font (Escala fija)
-} Font;	//* Estructura de Fonts
+} FontInfo;	//* Estructura de Fonts
 
 typedef struct Piezas {
 	char shape; // Forma
@@ -69,7 +70,7 @@ Playfield playfield;
 Tetromino curr, next, holder;
 
 //* Fuentes utilizadas
-Font upheavalFont = {"assets/fonts/upheaval.ttf", 20};
+FontInfo upheavalFont = {NULL, "assets/fonts/upheaval.ttf", 20};
 
 //* Arreglo de piezas
 Tetromino tetrominoes[7] = { 
@@ -198,18 +199,15 @@ char* gameOverPath[] = {
 	"assets/backgrounds/gameover/game-over1.png",
 	"assets/backgrounds/gameover/game-over2.png",
 	"assets/backgrounds/gameover/game-over3.png",
-	"assets/backgrounds/gameover/game-over4.png",
-	"assets/backgrounds/gameover/game-over5.png",
-	"assets/backgrounds/gameover/game-over6.png",
-	"assets/backgrounds/gameover/game-over7.png",
-	"assets/backgrounds/gameover/game-over8.png"
+	"assets/backgrounds/gameover/game-over4.png"
 };
 
 //! Declarar funciones
 //* Inicializar
-bool initSDL(SDL_Window **ptrWindow, SDL_Renderer **ptrRenderer);
+bool initTetris(SDL_Window **ptrWindow, SDL_Renderer **ptrRenderer);
 void initPlayfield(Playfield *playfield);
-Text* initText(const char *str, Font *font, const SDL_Color color, const int x, const int y, const float size);
+Text* initText(const char *str, FontInfo *font, const SDL_Color color, const int x, const int y, const float size);
+void openFont(FontInfo *info);
 
 //* Cargar texturas
 void loadTetrominoesTexture(SDL_Renderer *renderer);
@@ -224,13 +222,13 @@ void updatePlayfield(Playfield *playfield, Tetromino *curr, Tetromino *next);
 void newTetromino(Tetromino *curr, Tetromino *next);
 
 //* Funciones game loop
-void tetrisGameScreen(Playfield *playfield, Tetromino *curr, Tetromino *next, Tetromino *holder);
+void tetrisGameplay(Playfield *playfield, Tetromino *curr, Tetromino *next, Tetromino *holder);
 
 void gameInput(Tetromino *curr, Tetromino *next, Playfield *playfield);
 void gameUpdate(Playfield *playfield, Tetromino *curr, Tetromino *next, Tetromino *holder);
 bool checkGameOver(Playfield *playfield, Tetromino *curr);
 
-void gameOverScreen();
+void tetrisGameOver(SDL_Renderer *renderer, SDL_Texture *gameOverTextures[], Text* textRecord, Text* textScore);
 
 //* Loyica de tetris
 int checkLineState(Playfield *playfield, Uint8 row);
@@ -249,13 +247,13 @@ float calculateDifficulty(Uint8 level) ;
 void renderText(SDL_Renderer *renderer, Text *text);
 void renderFPS(SDL_Renderer *renderer, Text *textFPS);
 void renderBackground(SDL_Renderer *renderer, SDL_Texture *background, SDL_Texture *gameboardInt);
-void renderGameOver(SDL_Renderer *renderer, SDL_Texture **gameOverTextures, Text *textRecord);
 void renderNextHold(SDL_Renderer *renderer, Tetromino *next, Tetromino *holder);
-void renderTetromino(SDL_Renderer *renderer, Tetromino *tetro);
+void renderCurrTetromino(SDL_Renderer *renderer, Tetromino *tetro);
 void renderGhostTetromino(SDL_Renderer *renderer, Playfield *playfield, Tetromino *curr);
 void renderPlayfield(SDL_Renderer *renderer, Playfield *playfield);
+void renderGameOver(SDL_Renderer *renderer, SDL_Texture *gameOverTextures[], Text *textRecord, Text *textScore);
 void framesControl();
 
 //* Liberar y cerrar
 void destroyText(Text *text);
-void quitSDL(SDL_Window *window, SDL_Renderer *renderer);
+void quitTetris(SDL_Window *window, SDL_Renderer *renderer);

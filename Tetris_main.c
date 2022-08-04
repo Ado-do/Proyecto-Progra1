@@ -3,6 +3,7 @@
 #include "Tetris_functions.h"
 
 /* //! LISTA DE COSAS POR HACER EN ORDEN
+ * - Modificar estructura "Text" y "Font" (usar un unico TTF_Font para todo los textos)
  * - ARREGLAR FPS
  * - PULIR GAMEOVER
  * - HACER FUNCIONAL PARA LINUX (ARREGLAR "segmentation fault (core dump")
@@ -18,19 +19,21 @@
 int main(int argc, char *argv[]) {
 	srand(time(NULL));
 
-	if (!initSDL(&window, &renderer)) {
+	if (!initTetris(&window, &renderer)) {
 		printf("Error inicializando SDL: %s\n", SDL_GetError());
 		SDL_Delay(3000);
 		return -1;
 	}
-//! DECLARAR Y INICIALIZAR *******************************************************************************************************
+
+	//! INICIALIZAR *******************************************************************************************************
+	openFont(&upheavalFont);
 
 	textFPS = initText("FPS: 60", &upheavalFont, (SDL_Color){255,255,255,200}, 10, 1, 1);
 	textIntruc = initText("Press R to restart game", &upheavalFont, (SDL_Color){255,255,255,200}, 610, 1, 1);
 	textLevel = initText("Level: 0", &upheavalFont, (SDL_Color){255,255,255,255}, 50, 700, 1.3);
 	textScore = initText("Score: 0", &upheavalFont, (SDL_Color){255,255,255,255}, 50, 730, 1.3);
 	textLines = initText("Lines: 0", &upheavalFont, (SDL_Color){255,255,255,255}, 50, 760, 1.3);
-	textRecord = initText("New Record! Score: 0", &upheavalFont, (SDL_Color){255,255,255,255}, 280, 600, 1.5);
+	textRecord = initText("New Record!", &upheavalFont, (SDL_Color){255,255,255,255}, 320, 530, 2);
 
 	loadBackgroundsTexture(renderer, backgrounds);
 	loadGameOverTexture(renderer, gameOverTextures);
@@ -39,19 +42,17 @@ int main(int argc, char *argv[]) {
 	gameboardInt = IMG_LoadTexture(renderer, "assets/gameboards/gameboardInt.png");
 
 	loadTextTexture(renderer, textIntruc);
-
 	loadTextTexture(renderer, textScore);
 	loadTextTexture(renderer, textLines);
 	loadTextTexture(renderer, textRecord);
+	updateTextTexture(renderer, textLevel, level);
 
 	initPlayfield(&playfield);
 
 	level = 1;
 	difficulty = calculateDifficulty(level);
 
-	updateTextTexture(renderer, textLevel, level);
-	
-	newTetromino(&curr, &next);
+	newTetromino(&curr, &next); //TODO: Incluir posteriormente en un "initTetrisGameplay"
 
 	running = 1; // Flag de control de gameloop
 	start_time = SDL_GetTicks64(); // Tiempo en que se inicio gameloop
@@ -61,10 +62,10 @@ int main(int argc, char *argv[]) {
 		capTimer = SDL_GetTicks64(); // Tiempo de inicio de frame
 
 		//! PANTALLAS (MENU, TETRIS, GAMEOVER)
-		if (!gameOver) tetrisGameScreen(&playfield, &curr, &next, &holder);
-		else gameOverScreen();
+		if (!gameOver) tetrisGameplay(&playfield, &curr, &next, &holder);
+		else tetrisGameOver(renderer, gameOverTextures, textRecord, textScore);
 
-		//! CONTROL DE FRAMES Y TIEMPOS ======================================================================================
+		//! CONTROL DE FRAMES Y TIEMPOS
 		framesControl();
 	}
 
@@ -76,7 +77,8 @@ int main(int argc, char *argv[]) {
 	destroyText(textLevel);
 	destroyText(textIntruc);
 	destroyText(textFPS);
-	quitSDL(window, renderer);
+	TTF_CloseFont(upheavalFont.font);
+	quitTetris(window, renderer);
 
 	return 0;
 }

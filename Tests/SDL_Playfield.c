@@ -169,7 +169,7 @@ char* backgroundsPath[] = {
 };
 
 // Funcion que inicializa todo SDL y demas librerias usadas
-bool initSDL(SDL_Window **ptrWindow, SDL_Renderer **ptrRenderer) { 
+bool initTetris(SDL_Window **ptrWindow, SDL_Renderer **ptrRenderer) { 
 	// Inicializar toda la biblioteca de SDL
 	if (SDL_Init(SDL_INIT_EVERYTHING) < 0) {
 		printf("Error initializing SDL2: %s\n", SDL_GetError());
@@ -681,7 +681,7 @@ void renderNextHold(SDL_Renderer *renderer, Tetromino *next, Tetromino *holder) 
 	}
 }
 
-void renderTetromino(SDL_Renderer *renderer, Tetromino *tetro) {
+void renderCurrTetromino(SDL_Renderer *renderer, Tetromino *tetro) {
 	int currRect = 0;
 	for(int i = 0; i < tetro->size; i++) {
 		for(int j = 0; j < tetro->size; j++) {
@@ -785,7 +785,7 @@ int main(int argc, char *argv[]) {
 
 	SDL_Window* window;
 	SDL_Renderer* renderer;
-	if (!initSDL(&window, &renderer)) {
+	if (!initTetris(&window, &renderer)) {
 		printf("Error inicializando SDL: %s\n", SDL_GetError());
 		SDL_Delay(3000);
 		return -1;
@@ -853,7 +853,7 @@ int main(int argc, char *argv[]) {
 		// Playfield ============================================================
 		renderPlayfield(renderer, playfield);
 		renderGhostTetromino(renderer, playfield, &curr);
-		renderTetromino(renderer, &curr);
+		renderCurrTetromino(renderer, &curr);
 
 		// Interfaz superpuesta =================================================
 		SDL_RenderCopy(renderer, gameboardExt, NULL, NULL);
