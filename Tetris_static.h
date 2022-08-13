@@ -80,55 +80,64 @@ Tetromino tetrominoes[7] = {
 	,{1,1,1,0}
 	,{0,0,0,0}
 	,{0,0,0,0}},
-	INITIAL_X, INITIAL_Y},
+	INITIAL_X, INITIAL_Y,
+	{{0},{0},{0},{0}}},
 	// Z BLOCK
 	{'Z', 1, 3,
 	{{1,1,0,0}
 	,{0,1,1,0}
 	,{0,0,0,0}
 	,{0,0,0,0}},
-	INITIAL_X, INITIAL_Y},
+	INITIAL_X, INITIAL_Y,
+	{{0},{0},{0},{0}}},
 	// I BLOCK
 	{'I', 2, 4,
 	{{0,0,0,0}
 	,{1,1,1,1}
 	,{0,0,0,0}
 	,{0,0,0,0}},
-	INITIAL_X, INITIAL_Y},
+	INITIAL_X, INITIAL_Y,
+	{{0},{0},{0},{0}}},
 	// J BLOCK
 	{'J', 3, 3,
 	{{1,0,0,0}
 	,{1,1,1,0}
 	,{0,0,0,0}
 	,{0,0,0,0}},
-	INITIAL_X, INITIAL_Y},
+	INITIAL_X, INITIAL_Y,
+	{{0},{0},{0},{0}}},
 	// O BLOCK
 	{'O', 4, 2,
 	{{1,1,0,0}
 	,{1,1,0,0}
 	,{0,0,0,0}
 	,{0,0,0,0}},
-	INITIAL_X + 1, INITIAL_Y},
+	INITIAL_X + 1, INITIAL_Y,
+	{{0},{0},{0},{0}}},
 	// S BLOCK
 	{'S', 5, 3,
 	{{0,1,1,0}
 	,{1,1,0,0}
 	,{0,0,0,0}
 	,{0,0,0,0}},
-	INITIAL_X, INITIAL_Y},
+	INITIAL_X, INITIAL_Y,
+	{{0},{0},{0},{0}}},
 	// T BLOCK
 	{'T', 6, 3,
 	{{0,1,0,0}
 	,{1,1,1,0}
 	,{0,0,0,0}
 	,{0,0,0,0}},
-	INITIAL_X, INITIAL_Y}
+	INITIAL_X, INITIAL_Y,
+	{{0},{0},{0},{0}}}
 };
 
 //* Textos
 Text *textFPS, *textIntruc, *textScore, *textLevel, *textLines, *textRecord;
 
 //! Variables globales ======================================================
+//* Flag de testeo
+bool test;
 
 //* Variables principales SDL
 SDL_Window* window;
@@ -142,20 +151,24 @@ SDL_Texture *backgrounds[4], *gameOverTextures[9];
 SDL_Rect gameOverRect;
 
 //* Indices para fondos
-Uint8 currBackground, currGameOverTitle = 1; // Indice de background actual
+size_t currBackground, currGameOverTitle = 1; // Indice de background actual
 
 //* Flags de input
-bool up, right, left, softD, hardD, fall, hold; // Controles flags
+bool up, right, left, softDrop, hardDrop, fall, hold; // Controles flags
 Sint8 rotation; // Rotation flag
+bool rotated, shifted;
 
 //* Flags y contadores de updateGame y logica tetris
-Uint8 firstThreeDrops; // Primero 3 drops count
+Uint8 bags[2][7] = {{0,1,2,3,4,5,6}, {0,1,2,3,4,5,6}}; // 2 7bag
+size_t currBag, currElem;
+Uint8 nDrops; // Primeros 3 drops count
 bool droped; // Drop flag
 bool holded, firstHold; // Hold flags
 Uint8 lastDropedRow, lastDropedSize; // Propiedades ultima pieza dropeada
 Uint8 lastStackRow; // Ultima fila ocupada por stack (ALTURA)
-bool lock_delayFRUNA; // Lock delay flag //TODO: RESETEAR DELAY SEGUN CASOS DE RESET DE TETRIS GUIDELINE
-Uint32 fallDelay; // Contador de delay hardD
+bool lock_delay; // Lock delay flag
+Uint8 countLocks;
+Uint32 fallDelay; // Contador de delay hardDrop
 
 //* Flags y variable de dificultad y score
 bool nextLevel; // Flag level up
@@ -209,13 +222,6 @@ void initPlayfield(Playfield *playfield);
 Text* initText(const char *str, FontInfo *font, const SDL_Color color, const int x, const int y, const float size);
 void openFont(FontInfo *info);
 
-//* Cargar texturas
-void loadTetrominoesTexture(SDL_Renderer *renderer);
-void loadBackgroundsTexture(SDL_Renderer *renderer, SDL_Texture **backgrounds);
-void loadGameOverTexture(SDL_Renderer *renderer, SDL_Texture **gameOverTextures);
-void loadTextTexture(SDL_Renderer *renderer, Text *text);
-void updateTextTexture(SDL_Renderer *renderer, Text *text, int number);
-
 //* Funciones tablero
 void printPlayfield(Playfield *playfield);
 void updatePlayfield(Playfield *playfield, Tetromino *curr, Tetromino *next);
@@ -224,9 +230,9 @@ void newTetromino(Tetromino *curr, Tetromino *next);
 //* Funciones game loop
 void tetrisGameplay(Playfield *playfield, Tetromino *curr, Tetromino *next, Tetromino *holder);
 
-void gameInput(Tetromino *curr, Tetromino *next, Playfield *playfield);
+void gameInput();
 void gameUpdate(Playfield *playfield, Tetromino *curr, Tetromino *next, Tetromino *holder);
-bool checkGameOver(Playfield *playfield, Tetromino *curr);
+bool checkGameOver(Tetromino *curr);
 
 void tetrisGameOver(SDL_Renderer *renderer, SDL_Texture *gameOverTextures[], Text* textRecord, Text* textScore);
 
@@ -237,11 +243,18 @@ bool collision(Playfield *playfield, Tetromino *curr);
 void countStackHeight(Playfield *playfield);
 void wallKickFRUNA(Playfield *playfield, Tetromino *curr, Sint8 rotation);
 void rotateTetromino(Tetromino *tetro, const Sint8 sense);
-void hardDropTetromino(Playfield *playfield, Tetromino *curr, Tetromino *next);
-void softDropTetromino(Playfield *playfield, Tetromino *curr, Tetromino *next);
-bool checkFallTime(Uint64 totalFrames);
+void hardDropTetromino(Playfield *playfield, Tetromino *curr);
+void softDropTetromino(Playfield *playfield, Tetromino *curr);
+bool checkFallTime(Uint64 totalFrames, float difficulty);
 void calculateScore(int linesCleared);
 float calculateDifficulty(Uint8 level) ;
+
+//* Cargar texturas
+void loadTetrominoesTextures(SDL_Renderer *renderer);
+void loadBackgroundsTextures(SDL_Renderer *renderer, SDL_Texture *backgrounds[]);
+void loadGameOverTextures(SDL_Renderer *renderer, SDL_Texture *gameOverTextures[]);
+void loadTextTexture(SDL_Renderer *renderer, Text *text);
+void updateTextTexture(SDL_Renderer *renderer, Text *text, int number);
 
 //* Renderizado
 void renderText(SDL_Renderer *renderer, Text *text);

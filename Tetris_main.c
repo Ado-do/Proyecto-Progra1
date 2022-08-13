@@ -1,13 +1,14 @@
+#include <string.h> // Para testeo
 
 #include "Tetris_static.h"
 #include "Tetris_functions.h"
 
 /* //! LISTA DE COSAS POR HACER EN ORDEN
- * - Modificar estructura "Text" y "Font" (usar un unico TTF_Font para todo los textos)
+ * - Testear mas el lock delay
  * - ARREGLAR FPS
+ * - PULIR ENDGAME (NIVELES > 9) (SE NECESITA SRS)
  * - PULIR GAMEOVER
  * - HACER FUNCIONAL PARA LINUX (ARREGLAR "segmentation fault (core dump")
- * - MEJORAR ALEATORIEDAD (7-BAG)
  * - INCLUIR PANTALLA DE INICIO Y MENU
  * - PAUSA
  * - SONIDOS/MUSICA
@@ -18,6 +19,9 @@
 //! MAIN ====================================================================================================================================
 int main(int argc, char *argv[]) {
 	srand(time(NULL));
+
+	// if (argc > 1 && strcmp(argv[1], "test") == 0) test = true;
+	test = true;
 
 	if (!initTetris(&window, &renderer)) {
 		printf("Error inicializando SDL: %s\n", SDL_GetError());
@@ -35,9 +39,9 @@ int main(int argc, char *argv[]) {
 	textLines = initText("Lines: 0", &upheavalFont, (SDL_Color){255,255,255,255}, 50, 760, 1.3);
 	textRecord = initText("New Record!", &upheavalFont, (SDL_Color){255,255,255,255}, 320, 530, 2);
 
-	loadBackgroundsTexture(renderer, backgrounds);
-	loadGameOverTexture(renderer, gameOverTextures);
-	loadTetrominoesTexture(renderer);
+	loadBackgroundsTextures(renderer, backgrounds);
+	loadGameOverTextures(renderer, gameOverTextures);
+	loadTetrominoesTextures(renderer);
 	gameboardExt = IMG_LoadTexture(renderer, "assets/gameboards/gameboardExt.png");
 	gameboardInt = IMG_LoadTexture(renderer, "assets/gameboards/gameboardInt.png");
 
@@ -52,7 +56,7 @@ int main(int argc, char *argv[]) {
 	level = 1;
 	difficulty = calculateDifficulty(level);
 
-	newTetromino(&curr, &next); //TODO: Incluir posteriormente en un "initTetrisGameplay"
+	newTetromino(&curr, &next); //TODO: Incluir posteriormente en un "initTetrisGameplay", con flags inicializadas
 
 	running = 1; // Flag de control de gameloop
 	start_time = SDL_GetTicks64(); // Tiempo en que se inicio gameloop

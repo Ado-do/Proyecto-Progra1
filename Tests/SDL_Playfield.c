@@ -136,7 +136,7 @@ Sint8 rotation; // Rotation flag
 
 bool holded, firstHold; // Hold flags
 bool droped; // Drop flag
-Uint8 firstThreeDrops; // Drop flags
+Uint8 nDrops; // Drop flags
 bool lock_delayFRUNA; // Lock delay flag //TODO: RESETEAR DELAY SEGUN CASOS DE RESET DE TETRIS GUIDELINE
 Uint8 fallDelay; // Contador de delay hardD
 
@@ -392,7 +392,7 @@ void updatePlayfield(Playfield *playfield, Tetromino *curr, Tetromino *next) {
 	countStackHeight(playfield); // Comprobar altura del Stack
 
 	//TODO: UTILIZAR DELETEDFILES PARA CONTAR FILAS HECHAS Y AÑADIR DIFICULTAD
-	if (firstThreeDrops >= 3) deletedLines = deleteLines(playfield);
+	if (nDrops >= 3) deletedLines = deleteLines(playfield);
 	if (lastStackRow <= 5) checkGameOver(playfield, curr);
 
 	newTetromino(curr, next);
@@ -446,7 +446,7 @@ void rotateTetromino(Tetromino *tetro, const Sint8 sense) {
 
 // Funcion que se ejecuta cuando se dropea la pieza y esta pasa al stack (Se crea una pieza nueva)
 void hardDropTetromino(Playfield *playfield, Tetromino *curr, Tetromino *next) {
-	if (firstThreeDrops < 3) firstThreeDrops++;
+	if (nDrops < 3) nDrops++;
 	// Bajar hasta que sea posible colision
 	if (curr->y < lastStackRow - 4) {
 		curr->y = lastStackRow - 4;
@@ -466,7 +466,7 @@ void softDropTetromino(Playfield *playfield, Tetromino *curr, Tetromino *next) {
 	if (collision(playfield, curr)) {
 		curr->y--;
 		droped = true;
-		if (firstThreeDrops < 3) firstThreeDrops++;
+		if (nDrops < 3) nDrops++;
 	}
 }
 
@@ -596,7 +596,7 @@ void gameUpdate(Playfield *playfield, Tetromino *curr, Tetromino *next, Tetromin
 }
 
 // Funcion que asigna texturas a tetrominos
-void loadTetrominoesTexture(SDL_Renderer *renderer) {
+void loadTetrominoesTextures(SDL_Renderer *renderer) {
 	// Asignar texturas
 	for (int nShape = 0; nShape < 9; nShape++) {
 		blockColors[nShape] = IMG_LoadTexture(renderer, blockPaths[nShape]);
@@ -803,7 +803,7 @@ int main(int argc, char *argv[]) {
 	textIntruc = initText("Press R to restart game", &upheavalFont, (SDL_Color){255,255,255,200}, 0, 1, 1);
 
 	loadBackgroundsTexture(renderer, backgrounds);
-	loadTetrominoesTexture(renderer);
+	loadTetrominoesTextures(renderer);
 	gameboardExt = IMG_LoadTexture(renderer, "assets/gameboards/gameboardExt.png");
 	gameboardInt = IMG_LoadTexture(renderer, "assets/gameboards/gameboardInt.png");
 	loadTextTexture(renderer, textIntruc);
@@ -826,7 +826,12 @@ int main(int argc, char *argv[]) {
 
 	//! LOGICA Y CAMBIOS ======================================================================================
 
-		if(checkFallTime(countFrames)) fall = true;
+		if (fallDelay > 0) {
+			fallDelay--;
+		} else {
+			if(checkFallTime(countFrames)) fall = true;
+		}
+		
 		gameUpdate(playfield, &curr, &next, &holder);
 		if (droped) {
 			updatePlayfield(playfield, &curr, &next);

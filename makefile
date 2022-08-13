@@ -5,7 +5,7 @@ ifeq ($(OS),Windows_NT) # Windows
 SDL_DEVELOPMENT_INC := C:\msys64\mingw64\include\SDL2
 SDL_DEVELOPMENT_DIR := C:\msys64\mingw64\lib
 
-CFLAGS := -ggdb3 -O0 --std=c99 -Wall
+CFLAGS := -ggdb3 -O0 --std=c99 -Wall -Wextra
 # CFLAGS := -ggdb3 -O0 -mwindows --std=c99 -Wall
 
 # Library Flags
@@ -24,7 +24,7 @@ SDL_DEVELOPMENT_INC := /usr/include/SDL2
 LIBS := $(shell sdl-config --libs) -lSDL2main -lSDL2 -lSDL2_image -lSDL2_mixer -lSDL2_ttf -lm
 # SDL_LDFLAGS := $(shell sdl-config --libs)
 
-CFLAGS := $(shell sdl-config --cflags) -ggdb3 -O0 --std=c99 -Wall
+CFLAGS := $(shell sdl-config --cflags) -ggdb3 -O0 --std=c99 -Wall -Wextra
 # SDL_CFLAGS := $(shell sdl-config --cflags)
 
 # Distribution
@@ -53,6 +53,10 @@ EXEC := tetris.exe
 # default recipe
 all: $(EXEC) $(SRCS)	
 
+nowindow: CFLAGS+=-mwindows
+
+nowindow: all	
+
 # recipe for building the final executable
 $(EXEC): $(OBJS) $(HDRS) $(SRCS) makefile	
 	$(CC) $(CFLAGS) -o $@ $(OBJS) $(LIBS)
@@ -65,4 +69,4 @@ $(OBJS): $(@:.o=.c) $(HDRS) $(SRCS) makefile
 clean:	
 	$(RM) $(EXEC) *.o
 
-.PHONY: all clean
+.PHONY: all nowindow clean
