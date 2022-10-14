@@ -49,8 +49,6 @@
 * ~~**Entrega 2:** 15 julio~~
 * ~~**Entrega final:** 1 de Agosto~~
 
-Leer `Pauta Proyecto Tetris.pdf` por cualquier duda :)
-
 <p align="right">(<a href="#top">volver a inicio</a>)</p>
 
 <!-- ROADMAP -->
