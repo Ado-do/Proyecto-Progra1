@@ -4,16 +4,19 @@
 #include "Tetris_functions.h"
 
 /* //! LISTA DE COSAS POR HACER EN ORDEN
- * - Testear mas el lock delay
- * - ARREGLAR FPS
- * - PULIR ENDGAME (NIVELES > 9) (SE NECESITA SRS)
- * - PULIR GAMEOVER
- * - HACER FUNCIONAL PARA LINUX (ARREGLAR "segmentation fault (core dump")
+ * //TODO CAMBIAR DE POSICION LA GENERACION DE LA BOLSA (QUE SE GENERE AL INICIAR EL JUEGO)
  * - INCLUIR PANTALLA DE INICIO Y MENU
+ * - REDUCIR VARIABLES GLOBALES
+ *
+ * - ARREGLAR FPS
  * - PAUSA
  * - SONIDOS/MUSICA
+ * - PULIR GAMEOVER
+ * - PULIR ENDGAME (NIVELES > 9) (SE NECESITA SRS)
  * - MEJORAR DIFICULTAD
  * - AGREGAR WALLKICKS -> MEJORAR SCORE (TSPIN, FULLCLEAR)
+ * 
+ * - HACER FUNCIONAL PARA LINUX (ARREGLAR "segmentation fault (core dump)") //? POSTERGADO HASTA Q PUEDA USAR LINUX DNV :P
  */
 
 //! MAIN ====================================================================================================================================
@@ -23,13 +26,13 @@ int main(int argc, char *argv[]) {
 	// if (argc > 1 && strcmp(argv[1], "test") == 0) test = true;
 	test = true;
 
+	//! INICIALIZAR *******************************************************************************************************
 	if (!initTetris(&window, &renderer)) {
 		printf("Error inicializando SDL: %s\n", SDL_GetError());
 		SDL_Delay(3000);
 		return -1;
 	}
 
-	//! INICIALIZAR *******************************************************************************************************
 	openFont(&upheavalFont);
 
 	textFPS = initText("FPS: 60", &upheavalFont, (SDL_Color){255,255,255,200}, 10, 1, 1);

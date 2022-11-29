@@ -1,10 +1,12 @@
 #pragma once
 
+#include <stdio.h>
+
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
 #include <SDL2/SDL_ttf.h>
 #include <SDL2/SDL_timer.h>
-#include <stdio.h>
+
 #include <string.h>
 #include <stdbool.h>
 #include <time.h>
@@ -16,7 +18,7 @@
 //! Definir funciones principales
 
 // In game
-void tetrisGameplay(Playfield *playfield, Tetromino *curr, Tetromino *next, Tetromino *holder) {
+void tetrisGameplay(Playfield *playfield, Tetromino *curr, Tetromino *next, Tetromino *holder) { //TODO: RECIBIR PLAYFIELD DE LA ESTRUCTURA TETRIS
 	//! INPUT ======================================================================================
 	gameInput();
 
@@ -50,21 +52,12 @@ void tetrisGameplay(Playfield *playfield, Tetromino *curr, Tetromino *next, Tetr
 		textScore->rect.y = SCREEN_HEIGHT/2 + 100;
 	}
 	
-	if (nextLevel) {
-		difficulty = calculateDifficulty(level);
-		if (currBackground < 3) {
-			currBackground++;
-		} else {
-			currBackground = 0;
-		}
-	}
-	
 //! RENDER ======================================================================================
 	//* Cargar texturas en caso de actualizar
 	// Si se limpiaron lineas, actualizar texto de score y texto
 	if (clearedLines > 0) {
 		// Actualizar texto lineas
-		updateTextTexture(renderer, textLines, totalLines);
+		updateTextTexture(renderer, textLines, totalCleared);
 		// Actualizar texto score
 		updateTextTexture(renderer, textScore, score);
 		clearedLines = 0;
@@ -124,7 +117,7 @@ void tetrisGameOver(SDL_Renderer *renderer, SDL_Texture *gameOverTextures[], Tex
 
 //! Definir funciones secundarias
 
-// Funcion que recibe el input del juego //TODO: Cambiar running -> gameover
+// Funcion que recibe el input del juego
 void gameInput() {
 	while(SDL_PollEvent(&events)) {
 		if(events.type == SDL_QUIT) {
@@ -136,9 +129,9 @@ void gameInput() {
 				case SDLK_UP:
 					if (!events.key.repeat) rotation = COUNTER_CLOCKWISE;
 					break;
-				case SDLK_DOWN:		softDrop = true; break;
-				case SDLK_RIGHT:	right = true; break;
-				case SDLK_LEFT:		left = true; break;
+				case SDLK_DOWN:				softDrop = true; break;
+				case SDLK_RIGHT:			right = true; break;
+				case SDLK_LEFT:				left = true; break;
 				case SDLK_z:
 					if (!events.key.repeat) rotation = COUNTER_CLOCKWISE;
 					break;
@@ -148,22 +141,21 @@ void gameInput() {
 				case SDLK_a:
 					if (!events.key.repeat) rotation = DOUBLE_CLOCKWISE;
 					break;
-				case SDLK_c: hold = true; break;
+				case SDLK_c: 				hold = true; break;
 				case SDLK_SPACE:
 					if (!events.key.repeat) hardDrop = true;
 					break;
 				case SDLK_r:
 					if (!events.key.repeat) restart = true;
 					break;
-				case SDLK_ESCAPE: 	gameOver = true; break;
-									// running = false; break;
+				case SDLK_ESCAPE: 			gameOver = true; break;
 				default: break;
 			}
 		}
 	}
 }
 
-// Game updater (revisa coliones antes de mover)
+// Game updater (revisa coliones antes de mover) //TODO: Pulir lock delay
 void gameUpdate(Playfield *playfield, Tetromino *curr, Tetromino *next, Tetromino *holder) {
 //* Process input
 	if (rotation) {
@@ -177,7 +169,7 @@ void gameUpdate(Playfield *playfield, Tetromino *curr, Tetromino *next, Tetromin
 			}
 			rotated = false;
 		}
-		rotation = false;
+		rotation = 0;
 	}
 	if (hardDrop) {
 		if (holded) holded = false;
@@ -198,6 +190,7 @@ void gameUpdate(Playfield *playfield, Tetromino *curr, Tetromino *next, Tetromin
 		if (!firstHold) {
 			*holder = tetrominoes[curr->nShape];
 			newTetromino(curr, next);
+
 			firstHold = true;
 			holded = true;
 		} else {
@@ -205,6 +198,7 @@ void gameUpdate(Playfield *playfield, Tetromino *curr, Tetromino *next, Tetromin
 				int aux = curr->nShape;
 				*curr = *holder;
 				*holder = tetrominoes[aux];
+
 				holded = true;
 			}
 		}
@@ -238,6 +232,12 @@ void gameUpdate(Playfield *playfield, Tetromino *curr, Tetromino *next, Tetromin
 				lock_timer = totalFrames + 30; // 30 frames = 0.5 segs (60 fps game)
 				lock_delay = true;
 				if (test) printf("LOCK DELAY INICIADO\n"); //? TEST
+			}
+		} else {
+			if (lock_delay) { // En caso de una caida sin colision se reinicia lock delay
+				countLocks = 0;
+				rotated = shifted = false;
+				lock_delay = false;
 			}
 		}
 		fall = false;
@@ -291,7 +291,7 @@ void updatePlayfield(Playfield *playfield, Tetromino *curr, Tetromino *next) {
 	countStackHeight(playfield); // Comprobar altura del Stack
 
 	if (nDrops >= 3) clearedLines = deleteLines(playfield);
-	totalLines += clearedLines;
+	totalCleared += clearedLines;
 	// Revisar condiciones de Game Over
 	if (lastStackRow <= 5) gameOver = checkGameOver(curr);
 	// Generar nueva pieza si se siguen en juego
@@ -300,19 +300,19 @@ void updatePlayfield(Playfield *playfield, Tetromino *curr, Tetromino *next) {
 	// Testeo
 	if (test) {
 		printPlayfield(playfield); //? Imprimir matrix actual
-		printf("lastDropedRow: %d, lastDropedSize: %d!!!!!!!!!!\n", curr->y, curr->size); //? Test de drops
+		printf("lastDropedRow: %d, lastDropedSize: %d!!!!!!!!!!\n", lastDropedRow, lastDropedSize); //? Test de drops
 	}
 }
 
-// Generar nueva pieza de manera pseudo aleatoria //TODO: FALTA AGREGAR 7-BAG
-void newTetromino(Tetromino *curr, Tetromino *next) {
+// Generar nueva pieza de manera pseudo aleatoria
+void newTetromino(Tetromino *curr, Tetromino *next) { //TODO CAMBIAR DE POSICION LA GENERACION DE LA BOLSA (QUE SE GENERE AL INICIAR EL JUEGO)
 	//! 7-bag randomizer (https://tetris.fandom.com/wiki/Random_Generator)
 	// Generar dos bolsas de piezas aleatorias al iniciar el juego
 	if (nDrops == 0) {
 		currBag = 0;
-		// Algoritmo "Fisher–Yates shuffle" (Permutacion aleatoria)
+		// Algoritmo "Fisher–Yates shuffle" (Permutacion aleatoria de las 7 piezas)
 		for (int i = 7-1; i >= 0; i--) {
-			int j = rand() % (i+1);
+			int j = rand() % (i+1); // Posicion random entre "0" y "i+1" (1 >= i+1 >= 7);
 			int aux = bags[currBag][i];
 			bags[currBag][i] = bags[currBag][j];
 			bags[currBag][j] = aux;
@@ -320,13 +320,13 @@ void newTetromino(Tetromino *curr, Tetromino *next) {
 		// Asignar piezas "curr" y "next" a primeros elementos de la bolsa generada aleatoriamente
 		*curr = tetrominoes[bags[0][0]];
 		*next = tetrominoes[bags[0][1]];
-		currElem = 1;
+		indexBag = 1;
 
 	// Elegir siguiente pieza en la bolsa (generar otra si ya se acabaron los elementos)
 	} else {
-		currElem++;
-		if (currElem == 7) {
-			currElem = 0;
+		indexBag++;
+		if (indexBag == 7) {
+			indexBag = 0;
 			currBag = (currBag == 0) ? 1 : 0;
 			// Generar bolsa
 			for (int i = 7-1; i >= 0; i--) {
@@ -336,10 +336,10 @@ void newTetromino(Tetromino *curr, Tetromino *next) {
 				bags[currBag][j] = aux;
 			}
 			*curr = tetrominoes[next->nShape];
-			*next = tetrominoes[bags[currBag][currElem]];
+			*next = tetrominoes[bags[currBag][indexBag]];
 		} else {
 			*curr = tetrominoes[next->nShape];
-			*next = tetrominoes[bags[currBag][currElem]];
+			*next = tetrominoes[bags[currBag][indexBag]];
 		}
 	}
 
@@ -361,24 +361,25 @@ bool checkGameOver(Tetromino *curr) {
 	bool gameOver = false;
 	// Contar bloques de la pieza encima del tablero, si los 4 estan arriba, pierdes
 	int countBlocks = 0;
+	// Recorrer bloques de la pieza
 	for (int i = 0; i < curr->size; i++) {
 		for (int j = 0; j < curr->size; j++) {
-			// Coordenada Y respecto al tablero de bloque actual
+			// Coordenada Y del bloque actual de la pieza respecto al tablero (entre menor "curr->y", mas arriba estara el pieza)
 			int coordY = i + curr->y;
-			//TODO: Hacer mas flexible respecto a situacion del tablero y pieza actual
-			if (curr->matrix[i][j] && coordY <= 2) countBlocks++;
+			
+			if (curr->matrix[i][j] && coordY <= 2) countBlocks++; //TODO: Hacer mas flexible respecto a situacion del tablero y pieza actual
 		}
 	}
 	switch (countBlocks) {
 		case 3: //* "Mini clutch" (Salvar juego si la ultima pieza logro limpiar al menos una linea antes de caer)
 			if (clearedLines == 0) {
-				if (test) printf("GAME OVER!!!!\n"); //? Avisar gameover
 				gameOver = true;
+				if (test) printf("GAME OVER!!!!\n"); //? Avisar gameover
 			}
 			break;
 		case 4: //* "Top out" (Pieza cayo totalmente fuera de playfield)
-			if (test) printf("GAME OVER!!!!\n"); //? Avisar gameover
 			gameOver = true;
+			if (test) printf("GAME OVER!!!!\n"); //? Avisar gameover
 			break;
 		default: break;
 	}
@@ -401,7 +402,7 @@ int checkLineState(Playfield *playfield, Uint8 row) {
 int deleteLines(Playfield *playfield) {
 	Uint8 deletedLines = 0;
 	
-	Uint8 rowInterval = lastDropedRow + lastDropedSize;
+	Uint8 rowInterval = lastDropedRow + lastDropedSize; // Interalo de filas que se pudieron haber completado
 	if (rowInterval > BOARD_HEIGHT - 2) rowInterval = BOARD_HEIGHT - 2;
 
 	//* Llenar lineas completas de espacios vacios (Recorrer matriz hacia abajo)
@@ -414,11 +415,12 @@ int deleteLines(Playfield *playfield) {
 		}
 	}
 
-	//* Bajar piezas que quedaron flotando (Recorrer matriz hacia arriba)
-	for (int mainRow = rowInterval; mainRow > lastStackRow; mainRow--) { 
+	//* Bajar filas que quedaron flotando (Recorrer matriz hacia arriba)
+	for (int mainRow = rowInterval; mainRow > lastStackRow; mainRow--) {
 		if (checkLineState(playfield, mainRow) == 0) {
 			int secondRow = mainRow - 1; // Recorrer filas hasta encontrar filas incompletas
 			while (checkLineState(playfield, secondRow) == 0 && secondRow > lastStackRow) secondRow--; // Saltarse lineas vacias
+
 			// Swap linea vacia (mainRow) con siguiente linea incompleta (sencondRow)
 			for (int column = 1; column < BOARD_WIDTH - 1; column++) {
 				playfield->matrix[mainRow][column] = playfield->matrix[secondRow][column];
@@ -454,45 +456,46 @@ void countStackHeight(Playfield *playfield) {
 }
 
 //TODO: WALL KICK PARA CASOS BASICOS COMO POR EJEMPLO COLISION CON BORDE CUANDO "lastRowStack" ES MENOR A "posY" DE FIGURA
-void wallKickFRUNA(Playfield *playfield, Tetromino *curr, Sint8 rotation);
+//TODO void wallKickFRUNA(Playfield *playfield, Tetromino *curr, Sint8 rotation);
 
 // Funcion que rota piezas
-void rotateTetromino(Tetromino *tetro, const Sint8 sense) {
-	Tetromino copy = *tetro;
-	for(int i = 0; i < tetro->size; i++) {
-			for(int j = 0; j < tetro->size; j++) {
-				tetro->matrix[i][j] = copy.matrix[j][i];
-			}
+void rotateTetromino(Tetromino *curr, const Sint8 sense) {
+	Tetromino copy = *curr;
+	for (int i = 0; i < curr->size; i++) {
+		for(int j = 0; j < curr->size; j++) {
+			curr->matrix[i][j] = copy.matrix[j][i];
 		}
-	copy = *tetro;
+	}
+	copy = *curr;
+
 	switch (sense) {
 		case COUNTER_CLOCKWISE:
-			for(int i = 0; i < tetro->size/2; i++) {
-				for(int j = 0; j < tetro->size; j++) {
+			for (int i = 0; i < curr->size/2; i++) {
+				for (int j = 0; j < curr->size; j++) {
 					bool t = copy.matrix[i][j];
-					tetro->matrix[i][j] = copy.matrix[tetro->size - i - 1][j];
-					tetro->matrix[tetro->size - i - 1][j] = t;
+					curr->matrix[i][j] = copy.matrix[curr->size - i - 1][j];
+					curr->matrix[curr->size - i - 1][j] = t;
 				}
 			}
 			break;
 		case CLOCKWISE:
-			for(int i = 0; i < tetro->size; i++) {
-				for(int j = 0; j < tetro->size/2; j++) {
+			for (int i = 0; i < curr->size; i++) {
+				for (int j = 0; j < curr->size/2; j++) {
 					bool t = copy.matrix[i][j];
-					tetro->matrix[i][j] = copy.matrix[i][tetro->size - j - 1];
-					tetro->matrix[i][tetro->size - j - 1] = t;
+					curr->matrix[i][j] = copy.matrix[i][curr->size - j - 1];
+					curr->matrix[i][curr->size - j - 1] = t;
 				}
 			}
 			break;
 		case DOUBLE_CLOCKWISE:
-			for(int i = 0; i < tetro->size; i++) {
-				for(int j = 0; j < tetro->size/2; j++) {
+			for (int i = 0; i < curr->size; i++) {
+				for (int j = 0; j < curr->size/2; j++) {
 					bool t = copy.matrix[i][j];
-					tetro->matrix[i][j] = copy.matrix[i][tetro->size - j - 1];
-					tetro->matrix[i][tetro->size - j - 1] = t;
+					curr->matrix[i][j] = copy.matrix[i][curr->size - j - 1];
+					curr->matrix[i][curr->size - j - 1] = t;
 				}
 			}
-			rotateTetromino(tetro, CLOCKWISE);
+			rotateTetromino(curr, CLOCKWISE);
 			break;
 		default:
 			break;
@@ -534,31 +537,47 @@ bool checkFallTime(Uint64 totalFrames, float difficulty) {
 
 // Funcion que calcula score
 void calculateScore(int linesCleared) {
-	// Calcular score segun cantida de lineas limpiadas al mismo tiempo //TODO: AGREGAR CASOS ESPECIALES EJ: Tspins
-	switch(linesCleared) {
-		case 1: {score += 100  * (level + combo); break;} // Single
-		case 2: {score += 300  * (level + combo); break;} // Double
-		case 3: {score += 500  * (level + combo); break;} // Triple
-		case 4: {score += 1000 * (level + combo); break;} // Tetris
-		//TODO TSPINS
-		//TODO FULL CLEAR
-		default: break;
-	}
+	
+	if (linesCleared > 0) {
+		// Calcular score segun cantidad de lineas limpiadas al mismo tiempo //TODO: AGREGAR CASOS ESPECIALES EJ: Tspins
+		switch (linesCleared) {
+			case 1: {score += 100  * (level + combo); break;} // Single
+			case 2: {score += 300  * (level + combo); break;} // Double
+			case 3: {score += 500  * (level + combo); break;} // Triple
+			case 4: {score += 1000 * (level + combo); break;} // Tetris
+			//TODO TSPINS
+			//TODO FULL CLEAR
+			default: break;
+		}
+		combo++;
+	} else combo = 0;
 
-	if (linesCleared > 0) combo++;
-	else combo = 0;
 
-	// Cada 20 lineas limpiadas
-	if (totalLines >= 10 * level) { //TODO Encontrar mejor condicion para pasar niveles
-		if (level < 15) { //TODO Despues del nivel 13 las lineas caen mas de dos filas por frame (quizas lo arregle alfinal)
-			level++;
+	Uint8 nLinesRequired = 10; // Cantidad de lineas para pasar niveles
+
+	// Uint8 currClearedLines = (level != 1) ? (totalCleared - (nLinesRequired * (level - 1))) : totalCleared;
+	// if (currClearedLines >= (nLinesRequired * level)) {
+
+	// TODO Condicion para avanzar de nivel (Limpiar x lineas de lineas dependediendo del nivel)
+	if (totalCleared >= nLinesRequired * level) { //TODO Encontrar mejor condicion para pasar niveles (Aumentar cantidad de lineas requeridas en base al nivel)
+
+		//TODO Despues del nivel 15 las piezas caen mas de dos filas por frame (quizas lo arregle alfinal)
+		if (level == 15) {
+			return;
+		} else {
 			nextLevel = true;
+			level++;
+
+			difficulty = calculateDifficulty(level);
+
+			currBackground = (currBackground < 3) ? (currBackground + 1) : 0;
 		}
 	}
 }
 
-// Calcular dificultd segun nivel //TODO ARREGLAR FORMULA
+// Calcular dificultd segun nivel
 float calculateDifficulty(Uint8 level) {
+	// Formula segun Tetris
 	return (pow((0.8 - ((level - 1) *0.007)), level - 1)) * 60;
 }
 
@@ -617,8 +636,8 @@ void initPlayfield(Playfield *playfield) {
 }
 
 // Funcion que inicializa objeto de la estructura Text
-Text* initText(const char *str, FontInfo *fontInfo, const SDL_Color color, const int x, const int y, const float size) {
-	Text* text = (Text*) malloc(sizeof(Text));
+Text* initText(char *str, FontInfo *fontInfo, SDL_Color color, int x, int y, float size) {
+	Text* text = (Text*) malloc(sizeof(Text) + sizeof(char) * 100);
 	*text = (Text) {	// Se castea a un dato tipo "Text", ya que como estamos inicializandolo desde un puntero tenemos que usar un literal compuesto (googlea "Compound literal")
 		.string		= "", 									// String del texto (vacio por ahora)
 		.font 		= fontInfo->font,						// Fuente (Cargada con ayuda de TTF_OpenFont("path del font", tamaño letra))
@@ -799,7 +818,7 @@ void renderNextHold(SDL_Renderer *renderer, Tetromino *next, Tetromino *holder) 
 				next->rects[currRectNext].w = next->rects[currRectNext].h = TILE_SIZE + 1;
 				next->rects[currRectNext].x = (j * (TILE_SIZE + 1)) + nextX;
 				next->rects[currRectNext].y = (i * (TILE_SIZE + 1)) + nextY;
-				if (SDL_RenderCopy(renderer, blockColors[next->nShape], NULL, &next->rects[currRectNext])) {
+				if (SDL_RenderCopy(renderer, blockColors[next->nShape], NULL, &next->rects[currRectNext]) < 0) {
 					errorNext = true;
 				}
 				// SDL_RenderDrawRect(renderer, &next->rects[currRectNext]);
@@ -908,7 +927,7 @@ void renderPlayfield(SDL_Renderer *renderer, Playfield *playfield) {
 	}
 }
 
-void framesControl() {
+void framesControl() { //TODO Mejorar control de frames
 	totalFrames++; // Contar frames
 	frame_time = SDL_GetTicks64() - capTimer; // Tiempo de creacion de frame anterior
 	if (frame_time < 1000 / 60) SDL_Delay(1000 / 60 - frame_time);  // Esperar si el tiempo de creacion de frame fue menor a 1000/60 ticks, de manera de que el juego vaya a 60FPS
@@ -941,7 +960,7 @@ void quitTetris(SDL_Window *window, SDL_Renderer *renderer) {
 
 	TTF_Quit();
 	IMG_Quit();
-	SDL_DestroyRenderer(renderer);
+	SDL_DestroyRenderer(renderer); // Las texturas asosiadas son destruidas (liberadas)
 	SDL_DestroyWindow(window);
 	SDL_Quit();
 }
