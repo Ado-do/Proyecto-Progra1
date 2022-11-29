@@ -44,10 +44,10 @@
 * Franchesca Mora (Franchesita)
 * Cristobal Figueroa (Krozz)
 
-### Fechas Importantes
-* ~~**Entrega 1:** 24 junio~~
-* ~~**Entrega 2:** 15 julio~~
-* ~~**Entrega final:** 1 de Agosto~~
+### Imagenes
+Gameplay (Nivel 1)             |  Gameover
+:-------------------------:|:-------------------------:
+![](/img/gameplay1.png)  |  ![](/img/gameover.gif)
 
 <p align="right">(<a href="#top">volver a inicio</a>)</p>
 
@@ -61,29 +61,29 @@
     - [ ] Configuración <sub>(Opcional)</sub>
     - [ ] Mayores puntuaciones  <sub>(Opcional)</sub>
 
-- [X] ***Crear campo de juego (grilla 16x10) y mover piezas en esta***
-    - [X] **Definir limites de movimiento en la grilla**
-    - [X] **Game Over! (Si una pieza sobrepasa el campo de juego)**
+- [X] ~~***Crear campo de juego (grilla 16x10) y mover piezas en esta***~~
+    - [X] ~~**Definir limites de movimiento en la grilla**~~
+    - [X] ~~**Game Over! (Si una pieza sobrepasa el campo de juego)**~~
 
-- [X] ***Implementar los 7 tetrominos***
-    - [X] **Rotaciones**
+- [X] ~~***Implementar los 7 tetrominos***~~
+    - [X] ~~**Rotaciones**~~
      - [ ] ["Super rotation system"](https://tetris.wiki/Super_Rotation_System)
      - [ ] ["Wall kicks"](https://tetris.wiki/Super_Rotation_System#Wall_Kicks)
-    - [X] **Mostrar la siguiente pieza en la secuencia**
-    - [X] **Elimininar lineas completadas**
+    - [X] ~~**Mostrar la siguiente pieza en la secuencia**~~
+    - [X] ~~**Elimininar lineas completadas**~~
     - [ ] **Usar ["Random generator"](https://www.educative.io/courses/game-development-js-tetris/xlKZA7B9lLr) para crear la secuencia de piezas**
-    - [X] Preview de donde caera la pieza
+    - [X] ~~Preview de donde caera la pieza~~
 
-- [X] ***Definir los [controles finales](https://strategywiki.org/wiki/Tetris/Controls)***
+- [X] ~~***Definir los [controles finales](https://strategywiki.org/wiki/Tetris/Controls)***~~
     - [ ] DAS (Delayed Auto-Shift) y tipos de drops (Soft drop y Hard drop)
 
-- [X] ***Duracion de juego "infinita"***
+- [X] ~~***Duracion de juego "infinita"***~~
 
 - [ ] ***Sistema de Puntuación (["Scoring"](https://tetris.wiki/Scoring))***
-    - [X] **Contador de puntuación en pantalla**
-    - [X] **Contador de lineas completadas**
-    - [X] Implementar velocidades y dificultad
-    - [X] Cambiar escenarios segun puntuacion <sub>(Opcional)</sub>
+    - [X] ~~**Contador de puntuación en pantalla**~~
+    - [X] ~~**Contador de lineas completadas**~~
+    - [X] ~~Implementar velocidades y dificultad~~
+    - [X] ~~Cambiar escenarios segun puntuacion <sub>(Opcional)</sub>~~
     - [ ] Guardar records
 
 - [ ] Retoques finales
